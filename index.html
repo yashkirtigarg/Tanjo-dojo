@@ -248,6 +248,9 @@ input{font:inherit;color:var(--ink)}
 .isteps > div{display:flex;gap:12px;align-items:center}
 .isteps > div > b:first-child{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--blue);color:#fff;font-size:14px}
 .iic{display:inline-grid;place-items:center;vertical-align:middle;color:var(--blue)}
+.inote{margin:0;font-weight:600;color:var(--muted)}
+.ipoint{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:800;color:var(--blue);animation:nudge 1.2s ease-in-out infinite}
+@keyframes nudge{50%{transform:translateY(5px)}}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:60;width:100%;height:100%}
 
 /* medium: stats move under the card */
@@ -687,7 +690,7 @@ function openSettings(){
    iPhone / iPad: there is no install event, so the sheet shows the Share > Add to Home Screen steps.
    In-app browsers (WhatsApp, Instagram...) can't install at all, so we say "open in Chrome/Safari".
    Once installed (or the app is opened from the home screen) we never ask again. */
-const IKEY="tango-dojo-install";
+const IKEY="tango-dojo-install-v2";
 const UA=navigator.userAgent;
 const standalone=()=>matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches||navigator.standalone===true;
 const isIOS=/iphone|ipad|ipod/i.test(UA)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
@@ -697,10 +700,12 @@ let deferredPrompt=null, offerTimer=null, offered=false;
 function iget(){ try{ return JSON.parse(localStorage.getItem(IKEY))||{}; }catch(e){ return {}; } }
 function iset(o){ try{ localStorage.setItem(IKEY,JSON.stringify(Object.assign(iget(),o))); }catch(e){} }
 function markInstalled(){ iset({installed:true}); }
+const isInstalled=()=>standalone()||(!isIOS&&iget().installed);
 if(standalone()) markInstalled();
+if(standalone()&&!iget().welcomed){ iset({welcomed:true}); addEventListener("load",()=>setTimeout(()=>toast("You're in the app version. Okaeri!"),800)); }
 function shouldOffer(){
   const st=iget();
-  if(standalone()||st.installed) return false;
+  if(isInstalled()) return false;
   if(st.snoozeUntil&&Date.now()<st.snoozeUntil) return false;
   if((st.dismissals||0)>=3) return false;          // stop nagging after 3 "Not now"s
   if(deferredPrompt) return true;                   // Chrome/Edge/Samsung say it's installable
@@ -730,9 +735,14 @@ function openInstall(){
     body=`<div class="isteps"><div><b>1</b><span>Tap the <b>⋯</b> menu at the top of this screen</span></div><div><b>2</b><span>Choose <b>Open in ${isIOS?"Safari":"Chrome"}</b> (or Open in browser)</span></div><div><b>3</b><span>Install it from there. Or tap Copy link and paste it into ${isIOS?"Safari":"Chrome"}.</span></div></div>
       <div class="ans"><button class="btn ghost press" data-act="install-later">Not now</button><button class="btn blue press" data-act="copy-link">Copy link</button></div>`;
   } else {
-    body=`<div class="isteps"><div><b>1</b><span>Tap the Share button <span class="iic">${SHARE_ICON}</span> ${/ipad/i.test(UA)||navigator.maxTouchPoints>1&&navigator.platform==="MacIntel"?"at the top":"in the toolbar at the bottom"}</span></div>
-      <div><b>2</b><span>Scroll down and tap <span class="iic">${ADD_ICON}</span> <b>Add to Home Screen</b></span></div><div><b>3</b><span>Tap <b>Add</b>. Tango Dojo appears on your home screen.</span></div></div>
-      <div class="ans"><button class="btn ghost press" data-act="install-later">Not now</button><button class="btn blue press" data-act="install-done">I've added it</button></div>`;
+    const ipad=/ipad/i.test(UA)||(navigator.maxTouchPoints>1&&navigator.platform==="MacIntel");
+    const notSafari=/CriOS|FxiOS|EdgiOS|OPiOS/i.test(UA);
+    body=`<p class="inote">iPhones don't allow a one-tap install button, so it takes 3 quick taps in ${notSafari?"your browser":"Safari"}:</p>
+      <div class="isteps"><div><b>1</b><span>Tap <span class="iic">${SHARE_ICON}</span> <b>Share</b> ${notSafari?"(top right, next to the address bar)":ipad?"at the top of the screen":"at the bottom of the screen. Don't see it? Tap <b>···</b> first, then Share"}</span></div>
+      <div><b>2</b><span>Scroll down and tap <span class="iic">${ADD_ICON}</span> <b>Add to Home Screen</b>. Tap <b>View More</b> if it's hidden</span></div>
+      <div><b>3</b><span>Keep <b>Open as Web App</b> on, then tap <b>Add</b> (top right)</span></div></div>
+      ${ipad||notSafari?"":`<div class="ipoint" aria-hidden="true">Share is down here<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M6 14l6 6 6-6"/></svg></div>`}
+      <div class="ans"><button class="btn ghost press" data-act="install-later">Not now</button><button class="btn blue press" data-act="install-gotit">Got it, I'll do it</button></div>`;
   }
   sc.innerHTML=`<div class="sheet isheet" role="dialog" aria-modal="true" aria-label="Install Tango Dojo">${head}${body}</div>`;
   document.body.appendChild(sc);
@@ -747,7 +757,7 @@ async function runInstall(){
   closeInstall();
 }
 function installRow(){
-  if(standalone()||iget().installed&&!deferredPrompt) return iget().installed&&!standalone()?`<div class="setrow"><div><b>Installed</b><small>Open Tango Dojo from your home screen.</small></div></div>`:"";
+  if(standalone()) return `<div class="setrow"><div><b>App installed</b><small>You're using the home screen app.</small></div></div>`;
   return `<div class="setrow"><div><b>Install as an app</b><small>${deferredPrompt?"Adds Tango Dojo to your home screen like a normal app.":isIOS?"Tap Share, then Add to Home Screen.":"Open your browser menu and choose Install app or Add to Home screen."}</small></div><button class="btn blue press" data-act="install-open" style="min-height:44px;font-size:15px">Install</button></div>`;
 }
 // iPhone and in-app browsers never fire an event, so offer after a short look around.
@@ -774,7 +784,7 @@ document.addEventListener("click",e=>{
   else if(a==="settings") openSettings();
   else if(a==="install-go") runInstall();
   else if(a==="install-later") snoozeInstall();
-  else if(a==="install-done"){ markInstalled(); closeInstall(); toast("Lovely! Open Tango Dojo from your home screen."); }
+  else if(a==="install-gotit"){ iset({snoozeUntil:Date.now()+14*DAY}); closeInstall(); toast("Tap Share, then Add to Home Screen"); }
   else if(a==="install-open"){ closeSheet(); openInstall(); }
   else if(a==="copy-link"){ try{ navigator.clipboard.writeText(location.href).then(()=>toast("Link copied. Paste it in "+(isIOS?"Safari":"Chrome")+".")); }catch(e){ toast(location.href); } }
   else if(a==="close") closeSheet();
