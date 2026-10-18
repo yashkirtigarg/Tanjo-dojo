@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Tango Dojo: fun flashcards for all 894 Japanese N5 words, Lessons 1 to 20.">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tango Dojo">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Tango Dojo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap">
+<style>
+/* Layout: one screen. Lessons on the left, the card in the middle, progress on the right. Phone: lesson picker sheet + stacked. */
+:root{
+  color-scheme:light;
+  --bg:#E5F2FA; --panel:#FFFFFF; --panel2:#F1F8FD; --ink:#12324A; --muted:#526D82; --line:#D1E4F0; --track:#DCEBF5;
+  --blue:#1C7FC4; --blue-deep:#125C90; --blue-soft:#DCEEFA; --blue-light:#7DB6EE;
+  --pink:#FF8FB3; --pink-ink:#5A1030; --pink-deep:#D9668C; --pink-soft:#FFE4EE; --pink-pale:#FFC6D9; --hot:#FF6F9C;
+  --good:#12866A; --good-deep:#0B5F4A; --good-soft:#DDF5EC;
+  --card:#FFFFFF; --shadow-soft:0 16px 40px rgba(18,50,74,.12);
+  --display:"Mochiy Pop One","M PLUS Rounded 1c",system-ui,sans-serif;
+  --body:"M PLUS Rounded 1c",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --kana:"Klee One","M PLUS Rounded 1c","Hiragino Maru Gothic ProN",sans-serif;
+  --gx:max(16px,env(safe-area-inset-left,0px)); --gy:max(16px,env(safe-area-inset-right,0px));
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--blue-light);outline-offset:2px}
+input{font:inherit;color:var(--ink)}
+.disp{font-family:var(--display);font-weight:400}
+.label{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.press{transition:transform .08s}
+.press:active{transform:translateY(3px)}
+.pop{animation:pop .28s cubic-bezier(.3,1.5,.5,1)}
+@keyframes pop{from{transform:scale(.94);opacity:.4}}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+.app{height:100%;display:flex;flex-direction:column}
+/* header */
+.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--panel);border-bottom:1px solid var(--line);
+  padding-block:12px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.logo{display:flex;align-items:center;gap:10px;margin-right:auto;min-width:0}
+.logo b{display:block;font-family:var(--display);font-weight:400;font-size:22px;line-height:1.1;white-space:nowrap}
+.logo small{display:block;font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--muted)}
+.tabs{display:flex;gap:4px;padding:4px;border-radius:16px;background:var(--panel2);border:1px solid var(--line)}
+.tabs button{display:flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:6px 16px;border-radius:12px;font-weight:800;color:var(--muted)}
+.tabs button svg{width:18px;height:18px;flex:none}
+.tabs button[aria-pressed="true"]{background:var(--blue);color:#fff}
+.chips{display:flex;align-items:center;gap:10px;margin-left:auto}
+.chip{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip svg{width:18px;height:18px}
+.iconbtn{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);display:grid;place-items:center;flex:none}
+.iconbtn svg{width:20px;height:20px}
+
+/* body grid */
+.body{flex:1;min-height:0;display:grid;grid-template-columns:290px minmax(0,1fr) 300px;gap:20px;align-items:start;
+  padding-block:20px 24px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px));max-width:1600px;width:100%;margin:0 auto}
+.side{display:flex;flex-direction:column;gap:12px;height:100%;min-height:0}
+.search{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:14px;background:var(--panel);border:1px solid var(--line);color:var(--muted)}
+.search svg{width:18px;height:18px;flex:none}
+.search input{border:0;outline:0;background:transparent;width:100%;font-size:15px}
+.list{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:2px;overflow:auto;min-height:0;flex:1}
+.book{font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--muted);padding:10px 10px 4px}
+.lrow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border-radius:14px;padding:8px 10px;min-height:50px}
+.lrow:hover{background:var(--panel2)}
+.lrow[aria-current="true"]{background:var(--blue-soft)}
+.num{flex:none;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-family:var(--display);font-size:14px;background:var(--panel2);border:1px solid var(--line)}
+.num.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.num.done{background:var(--pink);color:var(--pink-ink);border-color:var(--pink)}
+.lmid{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.lmid b{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{display:block;height:6px;border-radius:99px;background:var(--track);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--blue)}
+.bar i.done{background:var(--pink)}
+.pct{font-size:12px;color:var(--muted);font-weight:700;min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
+.due{flex:none;font-size:11px;font-weight:800;border-radius:99px;padding:1px 7px;background:var(--pink);color:var(--pink-ink)}
+.wres{display:grid;grid-template-columns:1fr auto;gap:0 8px;align-items:center;padding:8px 10px;border-radius:12px;width:100%;text-align:left}
+.wres:hover{background:var(--panel2)}
+.wres .k{font-family:var(--kana);font-weight:600;font-size:19px;line-height:1.3;overflow-wrap:anywhere}
+.wres .m{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.say{width:40px;height:40px;border-radius:50%;background:var(--blue-soft);color:var(--blue-deep);display:grid;place-items:center;flex:none}
+.say svg{width:20px;height:20px}
+.empty{padding:16px;text-align:center;color:var(--muted)}
+
+/* main */
+.main{display:flex;flex-direction:column;gap:18px;min-width:0}
+.lhead{display:flex;align-items:center;gap:16px;flex-wrap:wrap;text-align:left;width:100%}
+.kanji{font-family:var(--display);font-size:26px;padding:8px 14px;border-radius:16px;background:var(--panel);border:1px solid var(--line);white-space:nowrap}
+.ltitle{flex:1;min-width:180px}
+.ltitle h1{margin:0;font-family:var(--display);font-weight:400;font-size:28px;line-height:1.2;text-wrap:balance}
+.chev{display:none}
+.dotsbox{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.dots{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.dots i{display:block;width:10px;height:10px;border-radius:99px;background:var(--track);transition:width .25s}
+.dots i.d{background:var(--good)}
+.dots i.c{width:22px;background:var(--blue)}
+.dots i.x{background:var(--pink)}
+
+.wrap{display:flex;flex-direction:column;gap:16px}
+.card{position:relative;background:var(--card);color:var(--ink);border-radius:30px;border:3px solid var(--blue);box-shadow:0 8px 0 var(--blue-deep),0 24px 48px rgba(18,50,74,.12);
+  transition:transform .2s cubic-bezier(.3,1.5,.5,1);touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.card:hover{transform:translateY(-3px) rotate(-.4deg)}
+.card.flip{height:clamp(380px,52vh,560px);cursor:pointer}
+.card.prompt{min-height:220px}
+.face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:64px 24px 44px;text-align:center}
+.card.prompt .face{position:relative;inset:auto;min-height:214px;padding:56px 24px 28px}
+.big{font-family:var(--kana);font-weight:600;font-size:clamp(44px,8vw,88px);line-height:1.15;overflow-wrap:anywhere}
+.big.m{font-size:clamp(34px,5.5vw,60px)}
+.big.s{font-size:clamp(26px,4vw,40px)}
+.ro{font-size:22px;font-weight:600;color:var(--muted)}
+.en{font-size:clamp(28px,4vw,46px);font-weight:800;line-height:1.2;overflow-wrap:anywhere}
+.en.m{font-size:clamp(22px,3vw,32px)}
+.en.s{font-size:20px;font-weight:700}
+.sub{font-family:var(--kana);font-weight:600;font-size:24px;color:var(--muted);overflow-wrap:anywhere}
+.ask{font-size:13px;font-weight:800;letter-spacing:.1em;color:var(--muted)}
+.hint{position:absolute;bottom:16px;left:0;right:0;text-align:center;font-size:13px;font-weight:700;color:var(--muted);pointer-events:none}
+.lvl{position:absolute;top:20px;left:20px;font-size:12px;font-weight:800;border-radius:99px;padding:3px 10px;z-index:2}
+.tools{position:absolute;top:14px;right:14px;display:flex;gap:8px;z-index:2}
+.tools button{width:44px;height:44px;border-radius:50%;background:var(--blue-soft);color:var(--blue-deep);display:grid;place-items:center}
+.tools svg{width:20px;height:20px}
+.stamp{position:absolute;top:70px;padding:4px 12px;border:3px solid;border-radius:10px;font-family:var(--display);font-size:20px;opacity:0;pointer-events:none;z-index:2}
+.stamp.yes{left:22px;color:var(--good);transform:rotate(-12deg)}
+.stamp.no{right:22px;color:var(--pink-deep);transform:rotate(12deg)}
+.ans{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:60px;border-radius:18px;padding:0 22px;font-size:18px;font-weight:800}
+.btn.got{background:var(--good);color:#fff;box-shadow:0 4px 0 var(--good-deep)}
+.btn.again{background:var(--pink);color:var(--pink-ink);box-shadow:0 4px 0 var(--pink-deep)}
+.btn.blue{background:var(--blue);color:#fff;box-shadow:0 4px 0 var(--blue-deep)}
+.btn.ghost{background:var(--panel);border:2px solid var(--line);box-shadow:0 4px 0 var(--line);font-size:16px}
+.btn kbd{font-family:var(--body);font-size:13px;opacity:.75}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.opt{display:flex;align-items:center;gap:12px;min-height:62px;padding:10px 14px;border-radius:18px;border:2px solid var(--line);background:var(--panel);font-size:18px;font-weight:700;text-align:left;box-shadow:0 3px 0 var(--line);overflow-wrap:anywhere;min-width:0}
+.opt kbd{flex:none;width:28px;height:28px;border-radius:9px;display:grid;place-items:center;font-family:var(--body);font-size:13px;border:2px solid var(--line);color:var(--muted)}
+.opt .k{font-family:var(--kana);font-size:22px;font-weight:600;display:block}
+.opt .r{font-size:13px;color:var(--muted);display:block;font-weight:600}
+.opt.right{border-color:var(--good);background:var(--good-soft);box-shadow:0 3px 0 var(--good)}
+.opt.wrong{border-color:var(--pink-deep);background:var(--pink-soft);box-shadow:0 3px 0 var(--pink-deep);animation:shake .35s}
+.opt[disabled]{cursor:default}
+.fb{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 16px;border-radius:18px;border:2px solid}
+.fb.ok{border-color:var(--good);background:var(--good-soft)}
+.fb.no{border-color:var(--pink-deep);background:var(--pink-soft)}
+.fb .t{font-weight:800}
+.fb .a{flex:1;min-width:180px}
+.fb .a span{font-family:var(--kana);font-weight:600;font-size:20px}
+.fb .btn{min-height:48px;font-size:16px}
+.typerow{display:flex;gap:12px;flex-wrap:wrap}
+.typerow input{flex:1;min-width:200px;height:60px;border-radius:18px;border:2px solid var(--line);background:var(--panel);font-size:22px;font-weight:700;text-align:center;outline:0}
+.typerow input:focus{border-color:var(--blue)}
+.typerow input.ok{border-color:var(--good)}
+.typerow input.no{border-color:var(--pink-deep);animation:shake .35s}
+.keys{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted);font-weight:600}
+.keys kbd{font-family:var(--body);font-weight:800;color:var(--ink)}
+.listen{width:112px;height:112px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 5px 0 var(--blue-deep)}
+.listen svg{width:48px;height:48px}
+
+/* full screen */
+.wrap.focus{position:fixed;inset:0;z-index:40;background:var(--bg);gap:20px;
+  padding-block:calc(24px + env(safe-area-inset-top,0px)) calc(24px + env(safe-area-inset-bottom,0px));
+  padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.wrap.focus .card{flex:1;min-height:0;height:auto;border-width:4px;border-radius:36px;box-shadow:0 10px 0 var(--blue-deep),0 30px 60px rgba(18,50,74,.18)}
+.wrap.focus .card:hover{transform:none}
+.wrap.focus .card.prompt .face{min-height:100%;height:100%}
+.wrap.focus .big{font-size:clamp(72px,15vw,200px)}
+.wrap.focus .big.m{font-size:clamp(52px,10vw,130px)}
+.wrap.focus .big.s{font-size:clamp(36px,6vw,72px)}
+.wrap.focus .en{font-size:clamp(44px,7vw,88px)}
+.wrap.focus .ro{font-size:28px}
+.wrap.focus .btn{min-height:72px;font-size:20px}
+
+/* round finished */
+.done{background:var(--card);border:3px solid var(--blue);border-radius:30px;box-shadow:0 8px 0 var(--blue-deep),0 24px 48px rgba(18,50,74,.12);padding:28px 24px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
+.done h2{margin:0;font-family:var(--display);font-weight:400;font-size:28px;text-wrap:balance}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%;max-width:480px}
+.tile{background:var(--panel2);border-radius:16px;padding:12px 8px}
+.tile b{display:block;font-family:var(--display);font-weight:400;font-size:24px;font-variant-numeric:tabular-nums}
+.tile span{font-size:12px;font-weight:700;color:var(--muted)}
+.ups{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.ups span{font-family:var(--kana);font-weight:600;font-size:18px;padding:4px 12px;border-radius:99px;background:var(--pink-soft)}
+
+/* right panel */
+.right{display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.mochi{flex-direction:row;align-items:center}
+.bubble{background:var(--panel2);border-radius:14px;padding:10px 12px;font-weight:600;font-size:14px;flex:1}
+.goal{display:flex;align-items:center;gap:14px}
+.goal svg{width:64px;height:64px;flex:none;transform:rotate(-90deg)}
+.goal b{font-family:var(--display);font-weight:400;font-size:22px;display:block;font-variant-numeric:tabular-nums}
+.goal span{font-size:13px;color:var(--muted)}
+.minis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mini{background:var(--panel2);border-radius:14px;padding:10px 12px}
+.mini b{display:block;font-family:var(--display);font-weight:400;font-size:20px;font-variant-numeric:tabular-nums}
+.mini span{font-size:12px;color:var(--muted);font-weight:700}
+.lbar{display:flex;height:12px;border-radius:99px;overflow:hidden;background:var(--track)}
+.lbar i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;font-weight:700;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+.cat .b{fill:#fff;stroke:var(--ink);stroke-linejoin:round}
+.cat .e{fill:#F7A8B8}
+.cat .l{fill:none;stroke:var(--ink);stroke-linecap:round}
+.cat .p{fill:var(--ink)}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(10,14,30,.45);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+.sheet{width:100%;max-width:560px;max-height:88%;overflow:auto;background:var(--panel);border-radius:26px 26px 0 0;display:flex;flex-direction:column;gap:14px;
+  padding:12px max(18px,env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));animation:up .25s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.grab{align-self:center;width:44px;height:5px;border-radius:99px;background:var(--line)}
+.shead{display:flex;align-items:center;gap:10px}
+.shead h2{margin:0 auto 0 0;font-family:var(--display);font-weight:400;font-size:22px}
+.cells{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.cell{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:58px;border-radius:14px;border:1px solid var(--line);background:var(--panel2)}
+.cell b{font-family:var(--display);font-weight:400;font-size:18px}
+.cell span{font-size:11px;font-weight:700;opacity:.8}
+.cell.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.cell.done{background:var(--pink);border-color:var(--pink);color:var(--pink-ink)}
+.setrow{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.setrow > div{min-width:0}
+.setrow small{display:block;color:var(--muted);font-size:13px}
+.switch{width:52px;height:30px;border-radius:999px;background:var(--line);position:relative;flex:none;transition:background .2s}
+.switch:after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.switch[aria-checked="true"]{background:var(--good)}
+.switch[aria-checked="true"]:after{transform:translateX(22px)}
+.seg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{padding:6px 12px;border-radius:9px;font-weight:700;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--blue);color:#fff}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:14px;font-weight:700;z-index:70;max-width:calc(100% - 32px);text-align:center;animation:up .3s}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:60;width:100%;height:100%}
+
+/* medium: stats move under the card */
+@media (max-width:1180px){
+  .body{grid-template-columns:270px minmax(0,1fr)}
+  .right{grid-column:2;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+}
+/* phone */
+@media (max-width:760px){
+  .app{height:auto;min-height:100%}
+  .top{gap:10px;padding-left:var(--gx);padding-right:var(--gy)}
+  .logo b{font-size:19px}
+  .logo small{display:none}
+  .chip{padding:4px 10px;font-size:13px}
+  .chip .unit{display:none}
+  .chips{gap:6px}
+  .iconbtn{width:38px;height:38px}
+  .tabs{order:3;width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+  .tabs button{padding:6px 4px;font-size:14px}
+  .tabs button svg{display:none}
+  .body{display:flex;flex-direction:column;gap:14px;padding-block:14px 28px;padding-left:var(--gx);padding-right:var(--gy)}
+  .side{display:none}
+  .main,.right{width:100%}
+  .right{display:grid;grid-template-columns:1fr}
+  .lhead{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:8px 12px;gap:12px}
+  .kanji{font-size:16px;padding:6px 10px}
+  .ltitle{min-width:0}
+  .ltitle h1{font-size:18px}
+  .chev{display:block;width:20px;height:20px;flex:none}
+  .dotsbox{width:100%;align-items:center;order:5}
+  .dotsbox .label{display:none}
+  .dots{justify-content:center}
+  .card.flip{height:auto;min-height:340px;aspect-ratio:auto}
+  .opts{grid-template-columns:1fr}
+  .keys{display:none}
+  .tiles b{font-size:20px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<style>
+body{margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+.top{padding-top:calc(12px + env(safe-area-inset-top,0px))}
+.body{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+@media (max-width:760px){.body{padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}}
+</style>
+</head>
+<body>
+
+
+<div class="app">
+  <header class="top">
+    <div class="logo" id="logo"></div>
+    <nav class="tabs" aria-label="Game">
+      <button data-mode="flip" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="12" height="15" rx="2.5"/><path d="M9 3h9.5A2.5 2.5 0 0 1 21 5.5V17" stroke-linecap="round"/></svg>Flip</button>
+      <button data-mode="quiz" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><path d="M14.5 17l2 2 3.5-4"/></svg>Quiz</button>
+      <button data-mode="type" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg>Type</button>
+      <button data-mode="listen" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>Listen</button>
+    </nav>
+    <div class="chips">
+      <span class="chip" id="streak" title="Day streak"></span>
+      <span class="chip" id="xpchip" title="Total XP"></span>
+      <button class="iconbtn" data-act="settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.6M18.9 12h2.6M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg></button>
+    </div>
+  </header>
+  <div class="body">
+    <aside class="side" aria-label="Lessons">
+      <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span class="sr">Search words</span><input id="q" type="search" placeholder="Search 894 words: neko, cat, ねこ" autocomplete="off"></label>
+      <div class="list" id="list"></div>
+    </aside>
+    <main class="main">
+      <button class="lhead" id="lhead" data-act="picker"></button>
+      <div id="stage"></div>
+      <div class="keys"><span><kbd>Space</kbd> flips</span><span><kbd>←</kbd> Again</span><span><kbd>→</kbd> Got it</span><span><kbd>1–4</kbd> picks an answer</span><span><kbd>F</kbd> full screen</span></div>
+    </main>
+    <aside class="right" id="right" aria-label="Your progress"></aside>
+  </div>
+</div>
+<canvas id="confetti" hidden></canvas>
+
+<script>
+const VOCAB = [{"n":1,"words":[["watashi","わたし","I"],["anata","あなた","you"],["ano hito (ano kata)","あのひと (あのかた)","that person, he, she (ano kata is the polite equivalent of ano hito)"],["-san","~さん","Mr., Ms. (suffix added to a name for expressing politeness)"],["-chan","~ちゃん","(suffix often added to a child's name instead of-san)"],["-jin","~じん","(suffix meaning 'a national of' e.g. Amerika-jin, an American)"],["sensei","せんせい","teacher, instructor (not used when referring to one's own job)"],["kyōshi","きょうし","teacher, instructor"],["gakusei","がくせい","student"],["kaishain","かいしゃいん","company employee"],["shain","しゃいん","employee of company (used with a company's name, e.g. IMC no shain)"],["ginkōin","ぎんこういん","bank employee"],["isha","いしゃ","[medical] doctor"],["kenkyūsha","けんきゅうしゃ","researcher, scholar"],["daigaku","だいがく","university"],["byōin","びょういん","hospital"],["dare (donata)","だれ(どなた)","who (donata is the polite equivalent of dare)"],["-sai","~さい","- years old"],["nan-sai (o-ikutsu)","なんさい(おいくつ)","how old (o-ikutsu is the polite equivalent of nan-sai)"],["hai","はい","yes"],["iie","いいえ","no"],["Hajimemashite.","はじめまして。","How do you do? (lit. I am meeting you for the first time. Usually used as the first phrase when introducing oneself.)"],["~kara kimashita.","~からきました。","I'm from (country)."],["[Dōzo] yoroshiku [onegai-shimasu].","[どうぞ] よろしく [おねがいします]。","Pleased to meet you. (lit. Please be nice to me. Usually used at the end of a self-introduction.)"],["shitsurei desu ga","しつれいですが","Excuse me, but (used when asking someone for personal information such as their name or address)"],["O-namae wa?","おなまえは?","May I have your name?"],["Kochira wa -san desu.","こちらは~さんです。","This is Mr./Ms. ~."],["Amerika","アメリカ","U.S.A."],["Igirisu","イギリス","U.K."],["Indo","インド","India"],["Indoneshia","インドネシア","Indonesia"],["Kankoku","かんこく","South Korea"],["Tai","タイ","Thailand"],["Chūgoku","ちゅうごく","China"],["Doitsu","ドイツ","Germany"],["Nihon","にほん","Japan"],["Burajiru","ブラジル","Brazil"]]},{"n":2,"words":[["kore","これ","this (thing here)"],["sore","それ","that (thing near the listener)"],["are","あれ","that (thing over there)"],["kono~","この~","this ~, this ~ here"],["sono ~","その~","that ~, that ~ near the listener"],["ano~","あの~","that ~, that ~ over there"],["hon","ほん","book"],["jisho","じしょ","dictionary"],["zasshi","ざっし","magazine"],["shinbun","しんぶん","newspaper"],["nōto","ノート","notebook"],["techō","てちょう","personal organiser"],["meishi","めいし","business card"],["kādo","カード","(credit) card"],["enpitsu","えんぴつ","pencil"],["bōrupen","ボールペン","ballpoint pen"],["shapu-penshiru","シャープペンシル","mechanical pencil, propelling pencil"],["kagi","かぎ","key"],["tokei","とけい","watch, clock"],["kasa","かさ","umbrella"],["kaban","かばん","bag, briefcase"],["CD","CD","CD, compact disc"],["terebi","テレビ","television"],["rajio","ラジオ","radio"],["kamera","カメラ","camera"],["konpyūtā","コンピューター","computer"],["kuruma","くるま","car, vehicle"],["tsukue","つくえ","desk"],["isu","いす","chair"],["chokorēto","チョコレート","chocolate"],["kōhii","コーヒー","coffee"],["[o-]miyage","[お] みやげ","souvenir, present"],["Eigo","えいご","the English language"],["Nihon-go","にほんご","the Japanese language"],["-go","~ご","~ language"],["nan","なん","what"],["sō","そう","so"],["anō","あのう","Er... (used to show hesitation)"],["e","えっ","Oh? What! (used when hearing something unexpected)"],["Dōzo.","どうぞ。","Here you are. (used when offering someone something)"],["[Dōmo] arigatō [gozaimasu].","[どうも] ありがとう [ございます]。","Thank you [very much]."],["Sō desu ka.","そうですか。","I see."],["Chigaimasu.","ちがいます。","No, it isn't./You are wrong."],["a","あ","Oh! (used when becoming aware of something)"],["Korekara osewa ni narimasu.","これから おせわに なります。","Thank you in advance for your kindness."],["Kochira koso [dōzo] yoroshiku [onegai-shimasu].","こちらこそ [どうぞ] よろしく [おねがい します]。","Pleased to meet you, too. (response to [Dozo] yoroshiku [onegai-shimasu].)"]]},{"n":3,"words":[["koko","ここ","here, this place"],["soko","そこ","there, that place near the listener"],["asoko","あそこ","that place over there"],["doko","どこ","where, what place"],["kochira","こちら","this way, this place (polite equivalent of koko)"],["sochira","そちら","that way, that place near the listener (polite equivalent of soko)"],["achira","あちら","that way, that place over there (polite equivalent of asoko)"],["dochira","どちら","which way, where (polite equivalent of doko)"],["kyōshitsu","きょうしつ","classroom"],["shokudō","しょくどう","dining hall, canteen"],["jimusho","じむしょ","office"],["kaigishitsu","かいぎしつ","conference room, meeting room"],["uketsuke","うけつけ","reception desk"],["robii","ロビー","lobby"],["heya","へや","room"],["toire (otearai)","トイレ(おてあらい)","toilet, rest room"],["kaidan","かいだん","staircase"],["erebētā","エレベーター","lift, elevator"],["esukarētā","エスカレーター","escalator"],["jidō-hanbaiki","じどうはんばいき","vending machine"],["denwa","でんわ","telephone handset, telephone call"],["[o-]kuni","[お]くに","country"],["kaisha","かいしゃ","company"],["uchi","うち","house, home"],["kutsu","くつ","shoes"],["nekutai","ネクタイ","tie, necktie"],["wain","ワイン","wine"],["uriba","うりば","department, counter (in a department store, etc.)"],["chika","ちか","basement"],["-kai (-gai)","~かい(~がい)","-th floor"],["nan-gai","なんがい","what floor"],["-en","~えん","yen"],["ikura","いくら","how much"],["hyaku","ひゃく","hundred"],["sen","せん","thousand"],["man","まん","ten thousand"],["Sumimasen.","すみません。","Excuse me."],["Dōmo.","どうも。","Thanks."],["Irasshaimase.","いらっしゃいませ。","Welcome./May I help you? (a greeting to a customer or a guest entering a shop, etc.)"],["[~o] misete kudasai.","[~を] みせてください。","Please show me [~]."],["ja","じゃ","well, then, in that case"],["[~o] kudasai.","[~を]ください。","Give me [~], please."],["Itaria","イタリア","Italy"],["Suisu","スイス","Switzerland"],["Furansu","フランス","France"],["Jakaruta","ジャカルタ","Jakarta"],["Bankoku","バンコク","Bangkok"],["Berurin","ベルリン","Berlin"],["Shin-Ōsaka","しんおおさか","name of a station in Osaka"]]},{"n":4,"words":[["okimasu","おきます","get up, wake up"],["nemasu","ねます","sleep, go to bed"],["hatarakimasu","はたらきます","work"],["yasumimasu","やすみます","take a rest, take a holiday"],["benkyō-shimasu","べんきょうします","study"],["owarimasu","おわります","finish"],["depāto","デパート","department store"],["ginkō","ぎんこう","bank"],["yūbinkyoku","ゆうびんきょく","post office"],["toshokan","としょかん","library"],["bijutsukan","びじゅつかん","art museum, art gallery"],["ima","いま","now"],["-ji","~じ","o'clock"],["-fun (-pun)","~ふん(~ぷん)","minute"],["han","はん","half"],["nan-pun","なんぷん","what minute"],["gozen","ごぜん","a.m., morning"],["gogo","ごご","p.m., afternoon"],["asa","あさ","morning"],["hiru","ひる","daytime, noon"],["ban (yoru)","ばん(よる)","night, evening"],["ototoi","おととい","the day before yesterday"],["kinō","きのう","yesterday"],["kyō","きょう","today"],["ashita","あした","tomorrow"],["asatte","あさって","the day after tomorrow"],["kesa","けさ","this morning"],["konban","こんばん","this evening, tonight"],["yasumi","やすみ","rest, a holiday, a day off"],["hiruyasumi","ひるやすみ","lunchtime"],["shiken","しけん","examination, test"],["kaigi","かいぎ","meeting, conference (~o shimasu : hold a meeting)"],["eiga","えいが","film, movie"],["maiasa","まいあさ","every morning"],["maiban","まいばん","every night"],["mainichi","まいにち","every day"],["getsu-yōbi","げつようび","Monday"],["ka-yōbi","かようび","Tuesday"],["sui-yōbi","すいようび","Wednesday"],["moku-yōbi","もくようび","Thursday"],["kin-yōbi","きんようび","Friday"],["do-yōbi","どようび","Saturday"],["nichi-yōbi","にちようび","Sunday"],["nan-yōbi","なんようび","what day of the week"],["~ kara","~から","from ~"],["~ made","~まで","up to, until~"],["~to~","~と~","and (used to connect nouns)"],["Taihen desu ne.","たいへんですね。","That's tough, isn't it? (used when expressing sympathy)"],["bangō","ばんごう","number"],["nan-ban","なんばん","what number"],["sochira","そちら","your place"],["Nyūyōku","ニューヨーク","New York"],["Pekin","ペキン","Beijing (北京)"],["Rosanzerusu","ロサンゼルス","Los Angeles"],["Rondon","ロンドン","London"],["Asuka","あすか","a fictitious Japanese restaurant"],["Appuru-ginkō","アップルぎんこう","a fictitious bank"],["Midori-toshokan","みどりとしょかん","a fictitious library"],["Yamato-bijutsukan","やまとびじゅつかん","a fictitious art gallery"]]},{"n":5,"words":[["ikimasu","いきます","go"],["kimasu","きます","come"],["kaerimasu","かえります","go home, return"],["gakkō","がっこう","school"],["sūpā","スーパー","supermarket"],["eki","えき","station"],["hikōki","ひこうき","aeroplane, airplane"],["fune","ふね","ship"],["densha","でんしゃ","electric train"],["chikatetsu","ちかてつ","underground, subway"],["shinkansen","しんかんせん","the Shinkansen, the bullet train"],["basu","バス","bus"],["takushii","タクシー","taxi"],["jitensha","じてんしゃ","bicycle"],["aruite","あるいて","on foot"],["hito","ひと","person, people"],["tomodachi","ともだち","friend"],["kare","かれ","he, boyfriend, lover"],["kanojo","かのじょ","she, girlfriend, lover"],["kazoku","かぞく","family"],["hitori de","ひとりで","alone, by oneself"],["senshū","せんしゅう","last week"],["konshū","こんしゅう","this week"],["raishū","らいしゅう","next week"],["sengetsu","せんげつ","last month"],["kongetsu","こんげつ","this month"],["raigetsu","らいげつ","next month"],["kyonen","きょねん","last year"],["kotoshi","ことし","this year"],["rainen","らいねん","next year"],["-nen","~ねん","-th year"],["nan-nen","なんねん","what year"],["-gatsu","~がつ","-th month of the year"],["nan-gatsu","なんがつ","what month"],["tsuitachi","ついたち","first day of the month"],["futsuka","ふつか","second, two days"],["mikka","みっか","third, three days"],["yokka","よっか","fourth, four days"],["itsuka","いつか","fifth, five days"],["muika","むいか","sixth, six days"],["nanoka","なのか","seventh, seven days"],["yōka","ようか","eighth, eight days"],["kokonoka","ここのか","ninth, nine days"],["tōka","とおか","tenth, ten days"],["jū yokka","じゅうよっか","fourteenth, fourteen days"],["hatsuka","はつか","twentieth, twenty days"],["ni-jū yokka","にじゅうよっか","twenty-fourth, twenty-four days"],["-nichi","~にち","--th day of the month, - day (s)"],["nan-nichi","なんにち","which day of the month, how many days"],["itsu","いつ","when"],["tanjōbi","たんじょうび","birthday"],["Sō desu ne.","そうですね。","Yes, it is."],["[Dōmo] arigatō gozaimashita.","[どうも] ありがとう ございました。","Thank you very much."],["Dō itashimashite.","どういたしまして。","You're welcome./Don't mention it."],["-bansen","~ばんせん","platform, -th platform"],["tsugi no","つぎの","next"],["futsū","ふつう","local (train)"],["kyūkō","きゅうこう","rapid"],["tokkyū","とっきゅう","express"],["Kōshien","こうしえん","name of a town near Osaka"],["Ōsakajō","おおさかじょう","Osaka Castle, a famous castle in Osaka"]]},{"n":6,"words":[["Tabemasu","たべます","eat"],["Nomimasu","のみます","drink"],["Suimasu [Tabako o~]","すいます [たばこを~]","smoke [a cigarette]"],["Mimasu","みます","see, look at, watch"],["Kikimasu","ききます","hear, listen"],["Yomimasu","よみます","read"],["Kakimasu","かきます","write (かきます can also mean to draw or paint, but in this case it is written with hiragana in this book)"],["kaimasu","かいます","buy"],["torimasu [shashin o ~]","とります [しゃしんを~]","take [a photograph]"],["shimasu","します","do, play"],["aimasu [tomodachi ni ~]","あいます [ともだちに~]","meet [a friend]"],["gohan","ごはん","a meal, cooked rice"],["asagohan","あさごはん","breakfast"],["hirugohan","ひるごはん","lunch"],["bangohan","ばんごはん","supper"],["pan","パン","bread"],["tamago","たまご","egg"],["niku","にく","meat"],["sakana","さかな","fish"],["yasai","やさい","vegetable"],["kudamono","くだもの","fruit"],["mizu","みず","water"],["ocha","おちゃ","tea, green tea"],["kōcha","こうちゃ","black tea"],["gyūnyū (miruku)","ぎゅうにゅう(ミルク)","milk"],["jūsu","ジュース","juice"],["biiru","ビール","beer"],["[o-]sake","[お] さけ","alcohol, Japanese rice wine"],["tabako","たばこ","tobacco, cigarette"],["tegami","てがみ","letter"],["repōto","レポート","report"],["shashin","しゃしん","photograph"],["bideo","ビデオ","video [tape], video deck"],["mise","みせ","shop, store"],["niwa","にわ","garden"],["shukudai","しゅくだい","homework (~をします: do homework)"],["tenisu","テニス","tennis (~をします: play tennis)"],["sakkā","サッカー","soccer, football (~をします: play soccer)"],["[o-] hanami","[お] はなみ","cherry-blossom viewing (~をします: view the cherry blossoms)"],["nani","なに","what"],["issho ni","いっしょに","together"],["chotto","ちょっと","a little while, a little bit"],["itsumo","いつも","always, usually"],["tokidoki","ときどき","sometimes"],["sorekara","それから","after that, and then"],["ē","ええ","Yes"],["Ii desu ne.","いいですね。","That's good."],["Wakarimashita.","わかりました。","I see."],["Nan desu ka.","なんですか。","Yes? (lit: What is it?)"],["Ja, mata [ashita].","じゃ、また[あした]。","See you [tomorrow]."],["Mekishiko","メキシコ","Mexico"]]},{"n":7,"words":[["kirimasu","きります","cut, slice"],["okurimasu","おくります","send"],["agemasu","あげます","give"],["moraimasu","もらいます","receive"],["kashimasu","かします","lend"],["karimasu","かります","borrow"],["oshiemasu","おしえます","teach"],["naraimasu","ならいます","learn"],["kakemasu [denwa o ~]","かけます [でんわを~]","make [a telephone call]"],["te","て","hand, arm"],["hashi","はし","chopsticks"],["supūn","スプーン","spoon"],["naifu","ナイフ","knife"],["fōku","フォーク","fork"],["hasami","はさみ","scissors"],["pasokon","パソコン","personal computer"],["kētai","ケータイ","mobile phone, cell phone"],["mēru","メール","e-mail"],["nengajō","ねんがじょう","New Year's greeting card"],["panchi","パンチ","punch"],["hotchikisu","ホッチキス","stapler"],["serotēpu","セロテープ","Sellotape, Scotch tape, clear adhesive tape"],["keshigomu","けしゴム","rubber, eraser"],["kami","かみ","paper"],["hana","はな","flower, blossom"],["shatsu","シャツ","shirt"],["purezento","プレゼント","present, gift"],["nimotsu","にもつ","luggage, baggage, parcel"],["okane","おかね","money"],["kippu","きっぷ","ticket"],["Kurisumasu","クリスマス","Christmas"],["chichi","ちち","(my) father"],["haha","はは","(my) mother"],["otōsan","おとうさん","(someone else's) father (also used to address one's own father)"],["okāsan","おかあさん","(someone else's) mother (also used to address one's own mother)"],["mō","もう","already"],["mada","まだ","not yet"],["korekara","これから","from now on, soon"],["[~,] suteki desu ne.","[~、] すてき です ね。","What a nice [~]!"],["Irasshai.","いらっしゃい。","How nice of you to come. (lit. Welcome.)"],["Dōzo o-agari kudasai.","どうぞ お あがり ください。","Do come in."],["Shitsurei-shimasu.","しつれい します。","May I? (lit. I commit an incivility.)"],["[~wa] ikaga desu ka.","[~は] いかが です か。","Won't you have [~]?/Would you like to have [~]? (used when offering something)"],["Itadakimasu.","いただきます。","Thank you./I accept. (said before starting to eat or drink)"],["Gochisōsama [deshita].","ごちそうさま [でした]。","That was delicious. (said after eating or drinking)"],["Supein","スペイン","Spain"]]},{"n":8,"words":[["hansamu[na]","ハンサム [な]","handsome"],["kirei[na]","きれい [な]","beautiful, clean"],["shizuka[na]","しずか [な]","quiet"],["nigiyaka[na]","にぎやか [な]","lively"],["yūmei[na]","ゆうめい [な]","famous"],["shinsetsu[na]","しんせつ [な]","helpful, kind, considerate (not used about one's own family members)"],["genki[na]","げんき [な]","healthy, energetic, cheerful"],["hima[na]","ひま[な]","free (time)"],["benri[na]","べんり [な]","convenient"],["suteki[na]","すてき [な]","fine, nice, wonderful"],["ōkii","おおきい","big, large"],["chiisai","ちいさい","small, little"],["atarashii","あたらしい","new, fresh"],["furui","ふるい","old (not used to describe a person's age)"],["ii (yoi)","いい(よい)","good"],["warui","わるい","bad"],["atsui","あつい","hot"],["samui","さむい","cold (referring to temperature)"],["tsumetai","つめたい","cold (referring to touch)"],["muzukashii","むずかしい","difficult"],["yasashii","やさしい","easy"],["takai","たかい","expensive, tall, high"],["yasui","やすい","inexpensive, cheap"],["hikui","ひくい","low"],["omoshiroi","おもしろい","interesting"],["oishii","おいしい","delicious, tasty"],["isogashii","いそがしい","busy"],["tanoshii","たのしい","enjoyable"],["shiroi","しろい","white"],["kuroi","くろい","black"],["akai","あかい","red"],["aoi","あおい","blue"],["sakura","さくら","cherry (blossom)"],["yama","やま","mountain"],["machi","まち","town, city"],["tabemono","たべもの","food"],["tokoro","ところ","place"],["ryō","りょう","dormitory"],["resutoran","レストラン","restaurant"],["seikatsu","せいかつ","life"],["[o-]shigoto","[お] しごと","work, business (~o shimasu: do one's job, work)"],["dō","どう","how"],["donna ~","どんな~","what kind of~"],["soshite","そして","and (used to connect sentences)"],["~ ga, ~","~が、~","~, but ~"],["O-genki desu ka.","おげんき です か。","How are you?"],["Sō desu ne.","そう です ね。","Well let me see. (pausing)"],["[~,] mō ippai ikaga desu ka.","[~、] もう いっぱい いかが です か。","Won't you have another cup of [~]?"],["[Iie,] kekkō desu.","[いいえ] けっこう です。","No, thank you."],["Mō ~ desu [ne].","もう~です [ね]。","It's already ~[, isn't it?]"],["Sorosoro shitsureishimasu.","そろそろ しつれいします。","It's time I was going."],["Iie.","いいえ。","Not at all."],["Mata irasshatte kudasai.","また いらっしゃって ください。","Please come again."],["Shanhai","シャンハイ","Shanghai (上海)"],["Kinkakuji","きんかくじ","Kinkakuji Temple (the Golden Pavilion)"],["Nara-kōen","ならこうえん","Nara Park"],["Fujisan","ふじさん","Mt. Fuji, the highest mountain in Japan"],["“Shichi-nin no samurai”","「しちにんのさむらい」","'The Seven Samurai', a classic movie by Akira Kurosawa"]]},{"n":9,"words":[["wakarimasu","わかります","understand"],["arimasu","あります","have"],["suki[na]","すき [な]","like"],["kirai[na]","きらい [な]","dislike"],["jōzu[na]","じょうず[な]","good at"],["heta[na]","へた[な]","poor at"],["nomimono","のみもの","drinks"],["ryōri","りょうり","dish (cooked food), cooking (~o shimasu: cook)"],["supōtsu","スポーツ","sport (~o shimasu: play sports)"],["yakyū","やきゅう","baseball (~o shimasu: play baseball)"],["dansu","ダンス","dance (~o shimasu: dance)"],["ryokō","りょこう","trip, tour (~ [o]-shimasu: travel, make a trip)"],["ongaku","おんがく","music"],["uta","うた","song"],["kurashikku","クラシック","classical music"],["jazu","ジャズ","jazz"],["konsāto","コンサート","concert"],["karaoke","カラオケ","karaoke"],["kabuki","かぶき","Kabuki (traditional Japanese musical drama)"],["e","え","picture, drawing"],["ji","じ","letter, character"],["kanji","かんじ","Chinese character"],["hiragana","ひらがな","hiragana script"],["katakana","かたかな","katakana script"],["rōmaji","ローマじ","the Roman alphabet"],["komakai okane","こまかい おかね","small change"],["chiketto","チケット","ticket"],["jikan","じかん","time"],["yōji","ようじ","something to do, errand"],["yakusoku","やくそく","appointment, promise (~[o]-shimasu: promise)"],["arubaito","アルバイト","side job (~o shimasu: work part-time)"],["go-shujin","ごしゅじん","(someone else's) husband"],["otto/shujin","おっと/しゅじん","(my) husband"],["okusan","おくさん","(someone else's) wife"],["tsuma/kanai","つま/かない","(my) wife"],["kodomo","こども","child"],["yoku","よく","well, much"],["daitai","だいたい","mostly, roughly"],["takusan","たくさん","many, much"],["sukoshi","すこし","a little, a few"],["zenzen","ぜんぜん","not at all (used with negatives)"],["hayaku","はやく","early, quickly, fast"],["~ kara","~から","because ~"],["dōshite","どうして","why"],["Kashite kudasai.","かしてください。","Please lend (it to me)."],["Ii desu yo.","いいですよ。","Sure./Certainly."],["zannen desu [ga]","ざんねんです [が]","I'm sorry [, but], unfortunately"],["ā","ああ","oh"],["Issho ni ikaga desu ka.","いっしょ に いかが です か。","Won't you join me (us)?"],["[~wa] chotto......","[~は] ちょっと･･････。","[~] is a bit difficult. (a euphemism used when declining an invitation)"],["Dame desu ka.","だめですか。","So you can't (come)?"],["Mata kondo onegai-shimasu.","また こんど おねがいします。","Please ask me again some other time. (used when refusing an invitation indirectly, considering someone's feelings)"]]},{"n":10,"words":[["arimasu","あります","exist, be (referring to inanimate things)"],["imasu","います","exist, be (referring to animate things)"],["iroiro[na]","いろいろ [な]","various"],["otoko no hito","おとこのひと","man"],["onna no hito","おんなのひと","woman"],["otoko no ko","おとこのこ","boy"],["onna no ko","おんなのこ","girl"],["inu","いぬ","dog"],["neko","ねこ","cat"],["panda","パンダ","panda"],["zō","ぞう","elephant"],["ki","き","tree, wood"],["mono","もの","thing"],["denchi","でんち","battery"],["hako","はこ","box"],["suitchi","スイッチ","switch"],["reizōko","れいぞうこ","refrigerator"],["tēburu","テーブル","table"],["beddo","ベッド","bed"],["tana","たな","shelf"],["doa","ドア","door"],["mado","まど","window"],["posuto","ポスト","postbox, mailbox"],["biru","ビル","building"],["ATM","ATM","cash machine, ATM (Automatic Teller Machine)"],["konbini","コンビニ","convenience store"],["kōen","こうえん","park"],["kissaten","きっさてん","café, coffee shop"],["-ya","~や","~ shop, ~ store"],["noriba","のりば","a fixed place to catch taxis, trains, etc."],["ken","けん","prefecture"],["ue","うえ","on, above, over"],["shita","した","under, below, beneath"],["mae","まえ","front, before"],["ushiro","うしろ","back, behind"],["migi","みぎ","right [side]"],["hidari","ひだり","left [side]"],["naka","なか","in, inside"],["soto","そと","outside"],["tonari","となり","next, next door"],["chikaku","ちかく","near, vicinity"],["aida","あいだ","between, among"],["~ya~ [nado]","~や~[など]","~, ~, and so on"],["[Dōmo] sumimasen.","[どうも] すみません。","Thank you."],["nanpurā","ナンプラー","nam pla"],["kōnā","コーナー","corner, section"],["ichiban shita","いちばん した","the bottom"],["Tōkyō Dizuniirando","とうきょうディズニー ランド","Tokyo Disneyland"],["Ajia-sutoa","アジアストア","a fictitious supermarket"]]},{"n":11,"words":[["imasu [kodomo ga ~]","います [こどもが~]","have [a child]"],["imasu [Nihon ni ~]","います [にほんに~]","stay, be [in Japan]"],["kakarimasu","かかります","take, cost (referring to time or money)"],["yasumimasu [kaisha o ~]","やすみます [かいしゃを~]","take a day off [work]"],["hitotsu","ひとつ","one (used when counting things)"],["futatsu","ふたつ","two"],["mittsu","みっつ","three"],["yottsu","よっつ","four"],["itsutsu","いつつ","five"],["muttsu","むっつ","six"],["nanatsu","ななつ","seven"],["yattsu","やっつ","eight"],["kokonotsu","ここのつ","nine"],["tō","とお","ten"],["ikutsu","いくつ","how many"],["hitori","ひとり","one person"],["futari","ふたり","two people"],["-nin","~にん","-people"],["-dai","~だい","(counter for machines, cars, etc.)"],["-mai","~まい","(counter for paper, stamps, etc.)"],["-kai","~かい","-times"],["ringo","りんご","apple"],["mikan","みかん","mandarin orange"],["sandoitchi","サンドイッチ","sandwich"],["karē[-raisu]","カレー [ライス]","curry [with rice]"],["aisukuriimu","アイスクリーム","ice cream"],["kitte","きって","postage stamp"],["hagaki","はがき","postcard"],["fūtō","ふうとう","envelope"],["ryōshin","りょうしん","parents"],["kyōdai","きょうだい","brothers and sisters"],["ani","あに","(my) elder brother"],["oniisan","おにいさん","(someone else's) elder brother"],["ane","あね","(my) elder sister"],["onēsan","おねえさん","(someone else's) elder sister"],["otōto","おとうと","(my) younger brother"],["otōtosan","おとうとさん","(someone else's) younger brother"],["imōto","いもうと","(my) younger sister"],["imōtosan","いもうとさん","(someone else's) younger sister"],["gaikoku","がいこく","foreign country"],["ryūgakusei","りゅうがくせい","foreign student"],["kurasu","クラス","class"],["-jikan","~じかん","-hour (s)"],["-shūkan","~しゅうかん","-week (s)"],["-kagetsu","~かげつ","-month (s)"],["-nen","~ねん","-year (s)"],["~ gurai","~ぐらい","about ~"],["donokurai","どのくらい","how long"],["zenbu de","ぜんぶで","in total"],["minna","みんな","all, everything, everyone."],["~dake","~だけ","only ~"],["Kashikomarimashita","かしこまりました。","Certainly, (Sir/Madam)"],["Ii [o-]tenki desu ne.","いい[お]てんきですね。","Nice weather, isn't it?"],["O-dekake desu ka.","おでかけですか。","Are you going out?"],["Chotto ~ made.","ちょっと~まで。","I'm just going to ~."],["Itterasshai.","いってらっしゃい。","See you later./So long. (lit. Go and come back.)"],["Itte kimasu.","いってきます。","See you later./So long. (lit. I'm going and coming back.)"],["funabin","ふなびん","sea mail"],["kōkūbin (eamēru)","こうくうびん(エアメール)","airmail"],["Onegai-shimasu.","おねがいします。","Please. (lit. ask for a favour)"],["Ōsutoraria","オーストラリア","Australia"]]},{"n":12,"words":[["kantan[na]","かんたん[な]","easy, simple"],["chikai","ちかい","near"],["tōi","とおい","far"],["hayai","はやい","fast, early"],["osoi","おそい","slow, late"],["ōi [hito ga ~]","おおい [ひとが~]","many [people], much"],["sukunai  [hito ga ~]","すくない [ひとが~]","few [people], a little"],["atatakai","あたたかい","warm"],["suzushii","すずしい","cool"],["amai","あまい","sweet"],["karai","からい","hot (taste), spicy"],["omoi","おもい","heavy"],["karui","かるい","light"],["ii [kōhii ga ~]","いい[コーヒーが~]","prefer [coffee]"],["kisetsu","きせつ","season"],["haru","はる","spring"],["natsu","なつ","summer"],["aki","あき","autumn, fall"],["fuyu","ふゆ","winter"],["tenki","てんき","weather"],["ame","あめ","rain, rainy"],["yuki","ゆき","snow, snowy"],["kumori","くもり","cloudy"],["hoteru","ホテル","hotel"],["kūkō","くうこう","airport"],["umi","うみ","sea, ocean"],["sekai","せかい","world"],["pātii","パーティー","party (~o shimasu: give a party)"],["[o-]matsuri","[お] まつり","festival"],["sukiyaki","すきやき","sukiyaki (beef and vegetable hot pot)"],["sashimi","さしみ","sashimi (sliced raw fish)"],["[o-]sushi","[お]すし","sushi (vinegared rice topped with raw fish)"],["tenpura","てんぷら","tempura (seafood and vegetables deep fried in batter)"],["butaniku","ぶたにく","pork"],["toriniku","とりにく","chicken"],["gyūniku","ぎゅうにく","beef"],["remon","レモン","lemon"],["ikebana","いけばな","flower arrangement (~ o shimasu: practise flower arrangement)"],["momiji","もみじ","maple, red leaves of autumn"],["dochira","どちら","which one (of two things)"],["dochira mo","どちらも","both"],["ichiban","いちばん","the most"],["zutto","ずっと","by far"],["hajimete","はじめて","for the first time"],["Tadaima.","ただいま。","I'm home."],["Okaerinasai.","おかえりなさい。","Welcome home."],["Wā, sugoi hito desu ne.","わあ、すごいひとですね。","Wow! Look at all those people!"],["Tsukaremashita.","つかれました。","I'm tired."],["Gion-matsuri","ぎおんまつり","the Gion Festival (the most famous festival in Kyoto)"],["Honkon","ホンコン","Hong Kong (香港)"],["Shingapōru","シンガポール","Singapore"],["ABC-sutoa","ABC ストア","a fictitious supermarket"],["Japan","ジャパン","a fictitious supermarket"]]},{"n":13,"words":[["asobimasu","あそびます","enjoy oneself, play"],["oyogimasu","およぎます","swim"],["mukaemasu","むかえます","go to meet, welcome"],["tsukaremasu","つかれます","get tired (when expressing the condition of being tired, tsukaremashita is used)"],["kekkon-shimasu","けっこんします","marry, get married"],["kaimono-shimasu","かいものします","do shopping"],["shokuji-shimasu","しょくじします","have a meal, dine"],["sanpo-shimasu [kōen o ~]","さんぽします [こうえんを~]","take a walk [in a park]"],["taihen[na]","たいへん [な]","hard, tough, severe, awful"],["hoshii","ほしい","want (something)"],["hiroi","ひろい","wide, spacious"],["semai","せまい","narrow, small (room, etc.)"],["pūru","プール","swimming pool"],["kawa","かわ","river"],["bijutsu","びじゅつ","fine arts"],["tsuri","つり","fishing (~o shimasu: fish, angle)"],["sukii","スキー","skiing (~o shimasu: ski)"],["shūmatsu","しゅうまつ","weekend"],["[o-]shōgatsu","[お] しょうがつ","New Year's Day"],["~goro","~ごろ","about ~ (time)"],["nanika","なにか","something"],["dokoka","どこか","somewhere, some place"],["nodo ga kawakimasu","のどが かわきます","get thirsty (when expressing the condition of being thirsty, nodo ga kawakimashita is used)"],["onaka ga sukimasu","おなかが すきます","get hungry (when expressing the condition of being hungry, onaka ga sukimashita is used)"],["Sō shimashō.","そう しましょう。","Let's do that.(used when agreeing with someone's suggestion)"],["Go-chūmon wa?","ごちゅうもんは?","May I take your order?"],["teishoku","ていしょく","set meal"],["gyūdon","ぎゅうどん","bowl of rice topped with beef"],["[Shōshō] o-machi kudasai.","[しょうしょう] おまち ください。","Please wait [a moment]."],["Akikkusu","アキックス","a fictitious company"],["Ohayō-terebi","おはようテレビ","a fictitious TV programme"]]},{"n":14,"words":[["tsukemasu","つけます","turn on"],["keshimasu","けします","turn off"],["akemasu","あけます","open"],["shimemasu","しめます","close, shut"],["isogimasu","いそぎます","hurry"],["machimasu","まちます","wait"],["mochimasu","もちます","hold"],["torimasu","とります","take, pass"],["tetsudaimasu","てつだいます","help (with a task)"],["yobimasu","よびます","call"],["hanashimasu","はなします","speak, talk"],["tsukaimasu","つかいます","use"],["tomemasu","とめます","stop, park"],["misemasu","みせます","show"],["oshiemasu [jūsho o ~]","おしえます [じゅうしょを~]","tell [an address]"],["suwarimasu","すわります","sit down"],["tachimasu","たちます","stand up"],["hairimasu [kissaten ni ~]","はいります [きっさてんに~]","enter [a café]"],["demasu [kissaten o ~]","でます [きっさてんを~]","go out [of a café]"],["furimasu [ame ga ~]","ふります [あめが~]","rain"],["kopii-shimasu","コピーします","copy"],["denki","でんき","electricity, light"],["eakon","エアコン","air conditioner"],["pasupōto","パスポート","passport"],["namae","なまえ","name"],["jūsho","じゅうしょ","address"],["chizu","ちず","map"],["shio","しお","salt"],["satō","さとう","sugar"],["mondai","もんだい","question, problem, trouble"],["kotae","こたえ","answer"],["yomi-kata","よみかた","how to read, way of reading"],["-kata","~かた","how to ~, way of -ing"],["massugu","まっすぐ","straight"],["yukkuri","ゆっくり","slowly, leisurely"],["sugu","すぐ","immediately"],["mata","また","again"],["ato de","あとで","later"],["mō sukoshi","もうすこし","a little more"],["mō ~","もう~","~ more, another ~"],["sā","さあ","right (used when encouraging some course of action)"],["Are?","あれ?","Oh! Eh? (in surprise or wonder)"],["Shingō o migi e magatte kudasai.","しんごうを みぎへ まがってください。","Turn right at the traffic lights."],["Kore de onegai-shimasu.","これでおねがいします。","I'd like to pay with this."],["otsuri","おつり","change"],["Midori-chō","みどりちょう","a fictitious town"]]},{"n":15,"words":[["okimasu","おきます","put"],["tsukurimasu","つくります","make, produce"],["urimasu","うります","sell"],["shirimasu","しります","get to know"],["sumimasu","すみます","live (in a place)"],["kenkyū-shimasu","けんきゅうします","do research"],["shiryō","しりょう","materials, data"],["katarogu","カタログ","catalogue"],["jikokuhyō","じこくひょう","timetable"],["fuku","ふく","clothes"],["seihin","せいひん","products"],["sofuto","ソフト","software"],["denshi-jisho","でんしじしょ","electronic dictionary"],["keizai","けいざい","economy"],["shiyakusho","しやくしょ","municipal office, city hall"],["kōkō","こうこう","senior high school"],["haisha","はいしゃ","dentist, dentist's"],["dokushin","どくしん","single, unmarried"],["sumimasen","すみません","I'm sorry."],["minasan","みなさん","Ladies and Gentlemen, everybody"],["omoidashimasu","おもいだします","remember, recollect"],["irasshaimasu","いらっしゃいます","be (honorific equivalent of imasu)"],["Nipponbashi","にっぽんばし","a shopping district in Osaka"],["Minna no intabyū","みんなのインタビュー","a fictitious TV programme"]]},{"n":16,"words":[["norimasu [densha ni ~]","のります [でんしゃに~]","ride, get on [a train]"],["orimasu [densha o ~]","おります [でんしゃを~]","get off [a train]"],["norikaemasu","のりかえます","change (train, etc.)"],["abimasu [shawā o ~]","あびます [シャワーを~]","take [a shower]"],["iremasu","いれます","put in, insert"],["dashimasu","だします","take out, hand in, send"],["oroshimasu [okane o ~]","おろします [おかねを~]","withdraw"],["hairimasu [daigaku ni ~]","はいります [だいがくに~]","enter [university]"],["demasu [daigaku o ~]","でます [だいがくを~]","graduate from [university]"],["oshimasu","おします","push, press"],["nomimasu","のみます","drink alcohol"],["hajimemasu","はじめます","start, begin"],["kengaku-shimasu","けんがくします","tour, visit a place to study it"],["denwa-shimasu","でんわします","phone"],["wakai","わかい","young"],["nagai","ながい","long"],["mijikai","みじかい","short"],["akarui","あかるい","bright, light"],["kurai","くらい","dark"],["karada","からだ","body, health"],["atama","あたま","head, brain"],["kami","かみ","hair"],["kao","かお","face"],["me","め","eye"],["mimi","みみ","ear"],["hana","はな","nose"],["kuchi","くち","mouth"],["ha","は","tooth"],["onaka","おなか","stomach"],["ashi","あし","leg, foot"],["se","せ","height"],["sābisu","サービス","service"],["jogingu","ジョギング","jogging (~o shimasu: jog)"],["shawā","シャワー","shower"],["midori","みどり","green, greenery"],["[o-]tera","[お] てら","Buddhist temple"],["jinja","じんじゃ","Shinto shrine"],["-ban","~ばん","number -"],["dōyatte","どうやって","in what way, how"],["dono ~","どの~","which~ (used for three or more)"],["dore","どれ","which one (of three or more things)"],["Sugoi desu ne.","すごいですね。","That's amazing!"],["[Iie,] madamada desu.","[いいえ、]まだまだです。","[No,] I still have a long way to go."],["O-hikidashi desu ka.","おひきだしですか。","Are you making a withdrawal?"],["mazu","まず","first of all"],["tsugi ni","つぎに","next, as a next step"],["kyasshu-kādo","キャッシュカード","cash dispensing card"],["anshō-bangō","あんしょうばんごう","personal identification number, PIN"],["kingaku","きんがく","amount of money"],["kakunin","かくにん","confirmation (-shimasu: confirm)"],["botan","ボタン","button"],["JR","JR","Japan Railways"],["Yuki-matsuri","ゆきまつり","Snow Festival"],["Bandon","バンドン","Bandung (in Indonesia)"],["Furanken","フランケン","Franken (in Germany)"],["Berakurusu","ベラクルス","Veracruz (in Mexico)"],["Umeda","うめだ","a district in Osaka"],["Daigaku-mae","だいがくまえ","a fictitious bus stop"]]},{"n":17,"words":[["oboemasu","おぼえます","memorise"],["wasuremasu","わすれます","forget"],["nakushimasu","なくします","lose"],["haraimasu","はらいます","pay"],["kaeshimasu","かえします","give back, return"],["dekakemasu","でかけます","go out"],["nugimasu","ぬぎます","take off (clothes, shoes, etc.)"],["motte ikimasu","もっていきます","take (something)"],["motte kimasu","もってきます","bring (something)"],["shinpai-shimasu","しんぱいします","worry"],["zangyō-shimasu","ざんぎょうします","work overtime"],["shutchō-shimasu","しゅっちょうします","go on a business trip"],["nomimasu [kusuri o~]","のみます [くすりを~]","take [medicine]"],["hairimasu [o-furo ni ~]","はいります [おふろに~]","take [a bath]"],["taisetsu[na]","たいせつ [な]","important, precious"],["daijōbu[na]","だいじょうぶ [な]","all right"],["abunai","あぶない","dangerous"],["kin'en","きんえん","no smoking"],["[kenkō-] hokenshō","[けんこう] ほけんしょう","[health] insurance card"],["netsu","ねつ","temperature, fever"],["byōki","びょうき","illness, disease"],["kusuri","くすり","medicine"],["[o-]furo","[お]ふろ","bath"],["uwagi","うわぎ","jacket, outerwear"],["shitagi","したぎ","underwear"],["2, 3-nichi","2、3にち","two or three days"],["2, 3-","2、3~","two or three ~ (where ~ is a counter suffix)"],["~ made ni","~までに","before~, by~ (indicating time limit)"],["desukara","ですから","therefore, so"],["Dō shimashita ka.","どうしましたか。","What's the matter?"],["nodo","のど","throat"],["[~ga] itai desu.","[~が] いたいです。","(I) have a pain [in my ~]."],["kaze","かぜ","cold, flu"],["sorekara","それから","and, furthermore"],["Odaiji ni.","おだいじに。","Take care of yourself. (said to people who are ill)"]]},{"n":18,"words":[["dekimasu","できます","be able to, can"],["araimasu","あらいます","wash"],["hikimasu","ひきます","play (stringed instrument, piano, etc.)"],["utaimasu","うたいます","sing"],["atsumemasu","あつめます","collect, gather"],["sutemasu","すてます","throw away"],["kaemasu","かえます","exchange, change"],["unten-shimasu","うんてんします","drive"],["yoyaku-shimasu","よやくします","reserve, book"],["piano","ピアノ","piano"],["-mētoru","~メートル","-meter"],["genkin","げんきん","cash"],["shumi","しゅみ","hobby"],["nikki","にっき","diary"],["oinori","おいのり","prayer (~o shimasu: pray)"],["kachō","かちょう","section head"],["buchō","ぶちょう","department head"],["shachō","しゃちょう","company president"],["dōbutsu","どうぶつ","animal"],["uma","うま","horse"],["intānetto","インターネット","the Internet"],["tokuni","とくに","especially"],["hē","へえ","What! Really! (used when expressing surprise)"],["Sore wa omoshiroi desu ne.","それはおもしろいですね。","That's interesting, isn't it?"],["nakanaka","なかなか","not easily (used with negatives)"],["Hontō desu ka.","ほんとうですか。","Really?"],["zehi","ぜひ","by all means, really"],["Furusato","ふるさと","Furusato (a song title meaning 'Home Town')"],["Biitoruzu","ビートルズ","the Beatles (a famous British pop group)"],["Akihabara","あきはばら","a district in Tokyo"]]},{"n":19,"words":[["noborimasu","のぼります","climb, go up"],["tomarimasu [hoteru ni ~]","とまります [ホテルに~]","stay [at a hotel]"],["sōji-shimasu","そうじします","clean (a room)"],["sentaku-shimasu","せんたくします","wash (clothes)"],["narimasu","なります","become"],["nemui","ねむい","sleepy"],["tsuyoi","つよい","strong"],["yowai","よわい","weak"],["renshū","れんしゅう","practice (~ [o] -shimasu: practise)"],["gorufu","ゴルフ","golf (~o shimasu: play golf)"],["sumō","すもう","sumo wrestling (~o shimasu: wrestle)"],["ocha","おちゃ","tea ceremony"],["hi","ひ","day, date"],["chōshi","ちょうし","condition"],["ichido","いちど","once"],["ichido mo","いちども","not once, never (used with negatives)"],["dandan","だんだん","gradually"],["mōsugu","もうすぐ","soon"],["okagesama de","おかげさまで","Thank you. (used when expressing gratitude for help received)"],["demo","でも","but"],["kanpai","かんぱい","Bottoms up./Cheers!"],["daietto","ダイエット","diet (~o shimasu: go on a diet)"],["muri[na]","むり [な]","excessive, impossible"],["karada ni ii","からだにいい","good for one's health"],["Tōkyō Sukaitsurii","とうきょうスカイツリー","Tokyo Sky Tree (broadcasting tower with observation deck in Tokyo)"],["Katsushika Hokusai","かつしかほくさい","a famous Edo-period woodblock artist and painter (1760-1849)"]]},{"n":20,"words":[["irimasu [biza ga ~]","いります [ビザが~]","need, require [a visa]"],["shirabemasu","しらべます","check, investigate"],["shūri-shimasu","しゅうりします","repair"],["boku","ぼく","I (an informal equivalent of watashi used by men)"],["kimi","きみ","you (an informal equivalent of anata used to address people of equal or lower status)"],["-kun","~くん","Mr. (an informal equivalent of -san used to address people of equal or lower status; also often appended to boys' names)"],["un","うん","yes (an informal equivalent of hai)"],["uun","ううん","no (an informal equivalent of iie)"],["kotoba","ことば","word, language"],["kimono","きもの","kimono (traditional Japanese attire)"],["biza","ビザ","visa"],["hajime","はじめ","the beginning"],["owari","おわり","the end of ~, The End"],["kotchi","こっち","this way, this place (an informal equivalent of kochira)"],["sotchi","そっち","that way, that place near the listener (an informal equivalent of sochira)"],["atchi","あっち","that way, that place over there (an informal equivalent of achira)"],["dotchi","どっち","which one (of two things), which way, where (an informal equivalent of dochira)"],["minna de","みんなで","all together"],["~ kedo","~けど","~, but (an informal equivalent of ga)"],["onaka ga ippai desu","おなかがいっぱいです","(I'm) full"],["yokattara","よかったら","if you like"],["iroiro","いろいろ","various"]]}];
+const TOPICS={1:"Introductions",2:"Things around you",3:"Places and prices",4:"Time and days",5:"Going places",6:"Eating and doing",7:"Giving and receiving",8:"Describing things",9:"Likes and skills",10:"Where things are",11:"Counting and family",12:"Weather and comparing",13:"Wants and outings",14:"Asking for things",15:"Living and working",16:"Body and routines",17:"Health and rules",18:"Hobbies and can-do",19:"Experiences",20:"Casual talk"};
+const KAN=["","一","二","三","四","五","六","七","八","九","十","十一","十二","十三","十四","十五","十六","十七","十八","十九","二十"];
+const LEVELS=[
+  {name:"New",bg:"var(--track)",ink:"var(--muted)"},
+  {name:"Egg",bg:"var(--pink-pale)",ink:"var(--pink-ink)"},
+  {name:"Chick",bg:"var(--pink)",ink:"var(--pink-ink)"},
+  {name:"Bird",bg:"var(--blue-light)",ink:"#0B2A4A"},
+  {name:"Phoenix",bg:"var(--blue)",ink:"#fff"}
+];
+const HOUR=3600e3, DAY=24*HOUR, INTERVAL=[0,4*HOUR,DAY,3*DAY,7*DAY], GOAL=100, ROUND=10;
+const WORDS=[], BY_LESSON={}, WORD_BY_ID={};
+VOCAB.forEach(L=>{ BY_LESSON[L.n]=[]; L.words.forEach((w,i)=>{ const o={id:L.n+"-"+i,lesson:L.n,ro:w[0],jp:w[1],me:w[2]}; WORDS.push(o); BY_LESSON[L.n].push(o); WORD_BY_ID[o.id]=o; }); });
+const LESSONS=VOCAB.map(L=>L.n);
+
+/* ---------- saved progress ---------- */
+const KEY="tango-dojo-v1";
+function fresh(){ return {v:1,words:{},xp:0,today:{day:"",xp:0},streak:0,lastDay:"",lesson:1,settings:{romaji:true,dir:"je",sound:true},updated:0}; }
+function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s&&s.v===1) return Object.assign(fresh(),s,{settings:Object.assign(fresh().settings,s.settings||{})}); }catch(e){} return fresh(); }
+let S=load();
+function save(){ S.updated=Date.now(); try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }
+try{ navigator.storage&&navigator.storage.persist&&navigator.storage.persist(); }catch(e){}
+
+function ws(id){ return S.words[id]||{l:0,d:0,c:0,w:0}; }
+function dayKey(t=Date.now()){ const d=new Date(t); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+function todayXP(){ return S.today.day===dayKey()?S.today.xp:0; }
+function streakNow(){ return (S.lastDay===dayKey()||S.lastDay===dayKey(Date.now()-DAY))?S.streak:0; }
+function addXP(n){
+  const t=dayKey(); if(S.today.day!==t) S.today={day:t,xp:0};
+  const before=S.today.xp; S.today.xp+=n; S.xp+=n;
+  if(S.lastDay!==t){ S.streak=(S.lastDay===dayKey(Date.now()-DAY))?S.streak+1:1; S.lastDay=t; }
+  if(before<GOAL&&S.today.xp>=GOAL) setTimeout(()=>{ toast("Daily goal done! "+streakNow()+" day streak"); confetti(); },500);
+}
+function grade(w,ok){
+  const s=Object.assign({},ws(w.id)), now=Date.now(), old=s.l;
+  if(ok){ s.c++; s.l=Math.min(4,s.l+1); s.d=now+(s.l===4&&old===4?21*DAY:INTERVAL[s.l]); }
+  else { s.w++; s.l=Math.max(1,s.l-1); s.d=now; }
+  S.words[w.id]=s; return {old,now:s.l};
+}
+function isDue(id){ const s=S.words[id]; return !!s&&s.l>0&&s.d<=Date.now(); }
+function lessonStats(n){
+  const list=BY_LESSON[n], counts=[0,0,0,0,0]; let sum=0, due=0;
+  list.forEach(w=>{ const l=ws(w.id).l; counts[l]++; sum+=l; if(isDue(w.id)) due++; });
+  return {counts,total:list.length,pct:Math.round(sum/(4*list.length)*100),done:list.every(w=>ws(w.id).l>=3),due};
+}
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+function esc(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function sz(s,mid,long){ return s.length>long?"s":s.length>mid?"m":""; }
+function toast(msg){ document.querySelectorAll(".toast").forEach(t=>t.remove()); const t=document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2400); }
+function lvlChip(l){ const L=LEVELS[l]; return `<span class="lvl" style="background:${L.bg};color:${L.ink}">${L.name}</span>`; }
+const SPK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+const EXPAND='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+const SHRINK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
+const XICON='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+function cat(mood="happy",w=76){
+  const face={happy:'M24 36q4-5 8 0M42 36q4-5 8 0M31 44q3 3 6 0q3 3 6 0',sad:'M24 34q4 3 8 1M42 35q4 2 8-1M33 47q4-3 8 0',sleep:'M24 35q4 3 8 0M42 35q4 3 8 0M31 44q3 3 6 0q3 3 6 0'}[mood==="wow"?"happy":mood];
+  const extra=mood==="wow"?'<circle class="p" cx="28" cy="35" r="3.4"/><circle class="p" cx="46" cy="35" r="3.4"/><ellipse class="p" cx="37" cy="46" rx="3" ry="3.6"/>':`<path class="l" stroke-width="2.6" d="${face}"/>`;
+  return `<svg class="cat" width="${w}" height="${Math.round(w*.89)}" viewBox="0 0 74 66" aria-hidden="true"><path class="b" stroke-width="2.6" d="M11 28 L9 5 L27 17 Q37 14 47 17 L65 5 L63 28 Q68 38 63 48 Q55 62 37 62 Q19 62 11 48 Q6 38 11 28Z"/><path class="e" d="M14 22 L13 12 L22 18Z M60 22 L61 12 L52 18Z"/><circle class="e" cx="20" cy="45" r="4.5"/><circle class="e" cx="54" cy="45" r="4.5"/>${extra}</svg>`;
+}
+
+/* ---------- speech ---------- */
+let jaVoice=null, jaVoices=[];
+const PREFER=[/nanami/i,/google\s*日本語/i,/kyoko.*(premium|enhanced)/i,/o-?ren/i,/kyoko/i,/ayumi/i,/haruka/i,/sayaka/i,/mizuki/i,/aoi/i,/female/i];
+const MALE=/otoya|hattori|ichiro|keita|daichi|naoki|takumi|male(?!.*fe)/i;
+function rankVoice(v){ for(let i=0;i<PREFER.length;i++) if(PREFER[i].test(v.name)) return i; return MALE.test(v.name)?99:50; }
+function loadVoices(){
+  try{
+    jaVoices=speechSynthesis.getVoices().filter(v=>/^ja/i.test(v.lang)).sort((a,b)=>rankVoice(a)-rankVoice(b));
+    const saved=S.settings.voice&&jaVoices.find(v=>v.name===S.settings.voice);
+    jaVoice=saved||jaVoices[0]||null;
+  }catch(e){}
+}
+if("speechSynthesis" in window){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
+function ttsText(jp){ return jp.replace(/\[[^\]]*\]/g," ").replace(/\([^)]*\)/g," ").replace(/[~～〜「」“”*]/g,"").replace(/\//g,"、").trim(); }
+function speak(w){
+  if(!w||!("speechSynthesis" in window)) return false;
+  try{ const u=new SpeechSynthesisUtterance(ttsText(w.jp)); u.lang="ja-JP"; if(jaVoice) u.voice=jaVoice; u.rate=.8; u.pitch=1.12; u.volume=.9; speechSynthesis.cancel(); speechSynthesis.speak(u); return true; }catch(e){ return false; }
+}
+
+/* ---------- kalimba sounds ---------- */
+let ac=null;
+function actx(){ try{ ac=ac||new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==="suspended") ac.resume(); return ac; }catch(e){ return null; } }
+function pluck(freq,at=0,vol=.14,len=.6){
+  const a=actx(); if(!a) return;
+  const t0=a.currentTime+at, lp=a.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=3200; lp.connect(a.destination);
+  [[1,1],[2,.22],[3.01,.06]].forEach(([m,amp])=>{ const o=a.createOscillator(), g=a.createGain(); o.type="sine"; o.frequency.value=freq*m;
+    g.gain.setValueAtTime(.0001,t0); g.gain.exponentialRampToValueAtTime(vol*amp,t0+.006); g.gain.exponentialRampToValueAtTime(.0001,t0+len/m);
+    o.connect(g); g.connect(lp); o.start(t0); o.stop(t0+len+.05); });
+}
+function sound(kind){
+  if(!S.settings.sound) return;
+  if(kind==="right"){ pluck(659.25,0,.13); pluck(987.77,.09,.12); }
+  else if(kind==="wrong"){ pluck(392,0,.11,.5); pluck(329.63,.12,.1,.7); }
+  else if(kind==="flip"){ pluck(1567.98,0,.035,.12); }
+  else if(kind==="level"){ [783.99,987.77,1174.66].forEach((f,k)=>pluck(f,k*.08,.11,.7)); }
+  else if(kind==="done"){ [523.25,659.25,783.99,987.77,1318.51].forEach((f,k)=>pluck(f,k*.07,.1,1.1)); }
+}
+
+/* ---------- confetti ---------- */
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv=$("#confetti"); cv.hidden=false; const ctx=cv.getContext("2d"), dpr=devicePixelRatio||1;
+  const W=cv.width=innerWidth*dpr, H=cv.height=innerHeight*dpr, cols=["#1C7FC4","#FF8FB3","#7DB6EE","#12866A","#FF6F9C","#FFC6D9"];
+  const P=Array.from({length:150},()=>({x:W/2+(Math.random()-.5)*W*.35,y:H*.35,vx:(Math.random()-.5)*28*dpr,vy:(-Math.random()*22-8)*dpr,s:(Math.random()*8+5)*dpr,r:Math.random()*6,vr:(Math.random()-.5)*.4,c:cols[Math.floor(Math.random()*cols.length)],o:Math.random()<.3}));
+  let f=0; (function tick(){ ctx.clearRect(0,0,W,H); P.forEach(p=>{ p.vy+=.9*dpr; p.vx*=.985; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle=p.c;
+    if(p.o){ ctx.beginPath(); ctx.arc(0,0,p.s/2,0,7); ctx.fill(); } else ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); ctx.restore(); });
+    if(++f<110) requestAnimationFrame(tick); else { ctx.clearRect(0,0,W,H); cv.hidden=true; } })();
+}
+
+/* ---------- round state ---------- */
+let mode="flip", R=null, focus=false, query="", mochi={mood:"happy",say:""};
+function pickCards(list){
+  const now=Date.now();
+  const due=shuffle(list.filter(w=>isDue(w.id)));
+  const nw=list.filter(w=>ws(w.id).l===0);
+  const rest=shuffle(list.filter(w=>{ const s=ws(w.id); return s.l>0&&s.d>now; })).sort((a,b)=>ws(a.id).l-ws(b.id).l);
+  return shuffle([...due,...nw,...rest].slice(0,ROUND));
+}
+function newRound(){
+  if(!BY_LESSON[S.lesson]) S.lesson=1;
+  R={cards:pickCards(BY_LESSON[S.lesson]),i:0,results:[],right:0,answered:0,combo:0,best:0,xp:0,up:[],again:new Set(),locked:false,flipped:false,picked:null,done:false,opts:null,dir:null,hints:0};
+  const st=lessonStats(S.lesson);
+  mochi={mood:"happy",say: st.due?`Lesson ${S.lesson}: ${st.due} word${st.due>1?"s are":" is"} due for review. They come first.`:Object.keys(S.words).length?`Lesson ${S.lesson}, ${TOPICS[S.lesson]}. Here come ${R.cards.length} cards.`:"Konnichiwa! I'm Mochi. Flip the card, then tell me if you knew it."};
+}
+function cur(){ return R.cards[R.i]; }
+function dirFor(){ const d=S.settings.dir; return d==="mix"?(Math.random()<.5?"je":"ej"):d; }
+
+function answer(ok,{requeue=false}={}){
+  const w=cur(); R.answered++;
+  const g=grade(w,ok);
+  if(ok){
+    R.right++; R.combo++; R.best=Math.max(R.best,R.combo);
+    const x=10+(R.combo>=3?5:0); R.xp+=x; addXP(x);
+    const leveled=g.now>g.old&&g.now>=3; if(g.now>g.old&&g.now>=2) R.up.push(w);
+    sound(leveled?"level":"right");
+    const cheers=["Ii ne! (nice)","Sugoi! (amazing)","Yatta! (did it)","Kanpeki! (perfect)","Jōzu! (skilful)"];
+    mochi={mood:R.combo>=5?"wow":"happy",say:R.combo>=3?`x${R.combo} combo! ${cheers[R.combo%cheers.length]}`:cheers[Math.floor(Math.random()*cheers.length)]};
+    R.results[R.i]="d";
+  } else {
+    R.combo=0; sound("wrong");
+    if(requeue&&!R.again.has(w.id)){ R.again.add(w.id); R.cards.push(w); }
+    mochi={mood:"sad",say:"Daijōbu. Missed words come back sooner, so you'll see it again."};
+    R.results[R.i]="x";
+  }
+  save();
+}
+function next(){
+  R.i++; R.locked=false; R.flipped=false; R.picked=null; R.opts=null; R.dir=null; R.hints=0; R.typed="";
+  if(R.i>=R.cards.length){ R.done=true; focus=false; sound("done"); const acc=R.answered?R.right/R.answered:0; if(acc>=.6) confetti(); }
+  renderAll();
+}
+
+/* ---------- render ---------- */
+function renderTop(){
+  $("#logo").innerHTML=`${cat("happy",42)}<div><b>Tango Dojo</b><small>たんご どうじょう</small></div>`;
+  $("#streak").innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--hot)" d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-6 0 2 1 3 2 3 0-3-1-6 1-9z"/></svg>${streakNow()}<span class="unit"> day${streakNow()===1?"":"s"}</span>`;
+  $("#xpchip").innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--pink)" d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>${S.xp.toLocaleString()} XP`;
+  document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.mode===mode));
+}
+function normSearch(s){ return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); }
+function searchHits(q){
+  const n=normSearch(q.trim()); if(!n) return null;
+  return WORDS.filter(w=>normSearch(w.ro).includes(n)||w.jp.includes(q.trim())||normSearch(w.me).includes(n)).slice(0,40);
+}
+function hitsHTML(hits,q){
+  if(!hits.length) return `<div class="empty">${cat("sad",56)}<div>No words match "${esc(q)}". Try romaji, English or kana.</div></div>`;
+  return `<div class="book">${hits.length===40?"FIRST 40 MATCHES":hits.length+" MATCH"+(hits.length>1?"ES":"")}</div>`+hits.map(w=>`
+    <div style="display:flex;align-items:center;gap:6px"><button class="wres" data-goto="${w.lesson}"><span class="k">${esc(w.jp)}</span><span class="pct">L${w.lesson}</span><span class="m">${S.settings.romaji?esc(w.ro)+" · ":""}${esc(w.me)}</span></button><button class="say" data-say="${w.id}" aria-label="Play ${esc(w.ro)}">${SPK}</button></div>`).join("");
+}
+function renderList(){
+  const el=$("#list"), hits=searchHits(query);
+  if(hits){ el.innerHTML=hitsHTML(hits,query); return; }
+  let h="";
+  LESSONS.forEach((n,i)=>{
+    if(i%5===0) h+=`<div class="book">BOOK ${i/5+1} · LESSONS ${n}–${n+4}</div>`;
+    const st=lessonStats(n), on=n===S.lesson;
+    h+=`<button class="lrow" data-lesson="${n}" aria-current="${on}"><span class="num ${on?"on":st.done?"done":""}">${n}</span>
+      <span class="lmid"><b>${TOPICS[n]}</b><span class="bar"><i class="${st.done?"done":""}" style="width:${st.pct}%"></i></span></span>
+      <span class="pct">${st.pct}%</span>${st.due?`<span class="due" title="${st.due} due">${st.due}</span>`:""}</button>`;
+  });
+  el.innerHTML=h;
+}
+function renderHead(){
+  const st=lessonStats(S.lesson);
+  const dots=R.done?"":R.cards.map((_,k)=>`<i class="${k<R.i?(R.results[k]||"d"):k===R.i?"c":""}"></i>`).join("");
+  $("#lhead").innerHTML=`<span class="kanji" aria-hidden="true">第${KAN[S.lesson]}課</span>
+    <span class="ltitle"><span class="label" style="display:block">Lesson ${S.lesson} · ${st.total} words · ${st.pct}%</span><h1>${TOPICS[S.lesson]}</h1></span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    ${R.done?"":`<span class="dotsbox"><span class="label">Card ${Math.min(R.i+1,R.cards.length)} of ${R.cards.length}</span><span class="dots">${dots}</span></span>`}`;
+  $("#lhead").setAttribute("aria-label",`Lesson ${S.lesson}, ${TOPICS[S.lesson]}. Choose a lesson`);
+}
+function tools(w){ return `<div class="tools"><button data-act="focus" aria-label="${focus?"Exit full screen":"Full screen"}" title="${focus?"Exit full screen (F)":"Full screen (F)"}">${focus?SHRINK:EXPAND}</button><button data-say="${w.id}" aria-label="Play pronunciation">${SPK}</button></div>`; }
+function jpFace(w){ return `<span class="big ${sz(w.jp,6,13)}">${esc(w.jp)}</span>${S.settings.romaji?`<span class="ro">${esc(w.ro)}</span>`:""}`; }
+function enFace(w){ return `<span class="en ${w.me.length>60?"s":w.me.length>24?"m":""}">${esc(w.me)}</span>`; }
+function renderStage(){
+  const el=$("#stage");
+  if(R.done){
+    const acc=R.answered?Math.round(R.right/R.answered*100):0;
+    const msg=acc>=90?"Kanpeki! A near perfect round.":acc>=70?"Yoku dekimashita! Nice work.":acc>=50?"Getting there. The tricky ones come back soon.":"Ganbatte! Missed words come back first next time.";
+    el.innerHTML=`<div class="done pop">${cat(acc>=80?"wow":acc>=50?"happy":"sad",110)}<h2>${msg}</h2>
+      <div class="tiles"><div class="tile"><b>+${R.xp}</b><span>XP</span></div><div class="tile"><b>${acc}%</b><span>accuracy</span></div><div class="tile"><b>${R.best}</b><span>best combo</span></div></div>
+      ${R.up.length?`<div class="label">Leveled up</div><div class="ups">${R.up.slice(0,10).map(w=>`<span>${esc(w.jp)}</span>`).join("")}</div>`:""}
+      <button class="btn blue press" data-act="again-round" style="min-width:220px">Next round</button></div>`;
+    return;
+  }
+  const w=cur(); const s=ws(w.id);
+  if(!R.dir) R.dir=mode==="listen"?"je":dirFor();
+  let h="";
+  if(mode==="flip"){
+    const front=R.dir==="je"?jpFace(w):enFace(w);
+    const back=R.dir==="je"?`${enFace(w)}<span class="sub">${esc(w.jp)}${S.settings.romaji?" · "+esc(w.ro):""}</span>`:`${jpFace(w)}<span class="sub" style="font-family:var(--body);font-size:18px">${esc(w.me)}</span>`;
+    h=`<div class="wrap ${focus?"focus":""}"><div class="card flip" id="card" tabindex="0" role="button" aria-label="Flashcard. Press Space to flip">
+        ${lvlChip(s.l)}${tools(w)}<span class="stamp yes">GOT IT</span><span class="stamp no">AGAIN</span>
+        <div class="face pop" id="face">${R.flipped?back:front}</div>
+        <span class="hint">${R.flipped?"Did you know it?":"Tap to flip · swipe left or right"}</span></div>
+      <div class="ans"><button class="btn again press" data-act="again">Again <kbd>←</kbd></button><button class="btn got press" data-act="got">Got it <kbd>→</kbd></button></div></div>`;
+  } else if(mode==="quiz"||mode==="listen"){
+    if(!R.opts) R.opts=makeOptions(w);
+    const prompt=mode==="listen"
+      ?`<button class="listen press" data-say="${w.id}" aria-label="Play the word again">${SPK}</button><span class="ask">LISTEN, THEN PICK THE MEANING</span>`
+      :R.dir==="je"?`<span class="ask">WHAT DOES THIS MEAN?</span>${jpFace(w)}`:`<span class="ask">HOW DO YOU SAY THIS?</span>${enFace(w)}`;
+    const showJp=mode==="quiz"&&R.dir==="ej";
+    h=`<div class="wrap ${focus?"focus":""}"><div class="card prompt">${lvlChip(s.l)}${tools(w)}<div class="face">${prompt}</div></div>
+      <div class="opts">${R.opts.map((o,k)=>{ const done=R.picked!==null, cls=done&&o.id===w.id?"right":done&&k===R.picked?"wrong":"";
+        return `<button class="opt press ${cls}" data-opt="${k}" ${done?"disabled":""}><kbd>${k+1}</kbd>${showJp?`<span><span class="k">${esc(o.jp)}</span>${S.settings.romaji?`<span class="r">${esc(o.ro)}</span>`:""}</span>`:`<span>${esc(o.me)}</span>`}</button>`; }).join("")}</div>
+      ${R.picked!==null?feedback(R.opts[R.picked].id===w.id,w):""}</div>`;
+  } else if(mode==="type"){
+    h=`<div class="wrap ${focus?"focus":""}"><div class="card prompt">${lvlChip(s.l)}${tools(w)}<div class="face"><span class="ask">TYPE THIS IN JAPANESE</span>${enFace(w)}<span id="hintTxt" style="color:var(--muted);font-size:14px">${R.hints===0?"Romaji or kana both work. Small typos are forgiven.":R.hints===1?`Starts with <b>${esc(firstVariant(w.ro).slice(0,2))}…</b>`:`<span class="sub">${esc(w.jp)}</span>`}</span></div></div>
+      <form class="typerow" id="typeForm" autocomplete="off"><label class="sr" for="typeIn">Your answer</label><input id="typeIn" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${esc(firstVariant(BY_LESSON[1][8].ro))}" ${R.locked?"disabled":""} value="${esc(R.typed||"")}" class="${R.locked?(R.typedOk?"ok":"no"):""}">
+        ${R.locked?"":`<button type="button" class="btn ghost press" data-act="hint">Hint</button><button type="submit" class="btn blue press">Check</button>`}</form>
+      ${R.locked?feedback(R.typedOk,w,R.typo?" Watch the spelling.":""):""}</div>`;
+  }
+  el.innerHTML=h;
+  if(mode==="flip") wireSwipe();
+  if(mode==="type"&&!R.locked){ const i=$("#typeIn"); setTimeout(()=>i&&i.focus(),30); $("#typeForm").onsubmit=e=>{ e.preventDefault(); checkType(); }; }
+  if(mode==="type"&&R.locked){ setTimeout(()=>{ const b=$("#nextBtn"); b&&b.focus(); },30); }
+  if(mode==="listen"&&!R.locked&&R.spoken!==w.id+":"+R.i){ R.spoken=w.id+":"+R.i; setTimeout(()=>speak(w),250); }
+}
+function feedback(ok,w,extra=""){
+  return `<div class="fb pop ${ok?"ok":"no"}" role="status"><span class="t">${ok?"Seikai! Correct.":"Not quite."}${esc(extra)}</span>
+    <span class="a"><span>${esc(w.jp)}</span> · ${esc(w.ro)} · ${esc(w.me)}</span>
+    <button class="btn ${ok?"got":"again"} press" id="nextBtn" data-act="next">Continue</button></div>`;
+}
+function renderRight(){
+  const st=lessonStats(S.lesson), tx=todayXP(), C=2*Math.PI*18, learned=Object.values(S.words).filter(s=>s.l>0).length;
+  $("#right").innerHTML=`
+    <div class="panel mochi">${cat(mochi.mood,72)}<div class="bubble" role="status">${esc(mochi.say)}</div></div>
+    <div class="panel"><div class="label">Today</div>
+      <div class="goal"><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="18" fill="none" stroke="var(--track)" stroke-width="6"/><circle cx="22" cy="22" r="18" fill="none" stroke="var(--pink)" stroke-width="6" stroke-linecap="round" stroke-dasharray="${C*Math.min(1,tx/GOAL)} ${C}"/></svg>
+      <div><b>${tx} / ${GOAL} XP</b><span>${tx>=GOAL?"Daily goal done. Anything more is a bonus.":"Daily goal. "+(GOAL-tx)+" XP to go."}</span></div></div>
+      <div class="minis"><div class="mini"><b>${learned}</b><span>words learned of ${WORDS.length}</span></div><div class="mini"><b>x${R.combo}</b><span>combo right now</span></div></div></div>
+    <div class="panel"><div class="label">This lesson</div>
+      <div class="lbar">${st.counts.map((c,l)=>c?`<i style="width:${c/st.total*100}%;background:${LEVELS[l].bg}"></i>`:"").join("")}</div>
+      <div class="legend">${st.counts.map((c,l)=>`<span><i style="background:${LEVELS[l].bg};${l===0?"border:1px solid var(--muted)":""}"></i>${LEVELS[l].name} ${c}</span>`).join("")}</div></div>`;
+}
+function renderAll(){ renderTop(); renderList(); renderHead(); renderStage(); renderRight(); }
+
+/* ---------- quiz + typing ---------- */
+function makeOptions(w){
+  const pool=BY_LESSON[w.lesson].length>=6?BY_LESSON[w.lesson]:WORDS;
+  const seen=new Set([w.me.toLowerCase(),w.jp]), out=[w];
+  for(const c of shuffle(pool)){ if(out.length>=4) break; if(seen.has(c.me.toLowerCase())||seen.has(c.jp)) continue; seen.add(c.me.toLowerCase()); seen.add(c.jp); out.push(c); }
+  return shuffle(out);
+}
+function pickOpt(k){
+  if(R.locked||R.done||!R.opts||!R.opts[k]) return; R.locked=true; R.picked=k;
+  const w=cur(), ok=R.opts[k].id===w.id; answer(ok); renderAll();
+  if(mode!=="listen") speak(w);
+  setTimeout(()=>{ const b=$("#nextBtn"); b&&b.focus({preventScroll:true}); },30);
+}
+function firstVariant(ro){ return ro.split("/")[0].replace(/\([^)]*\)/g,"").replace(/\[[^\]]*\]/g,"").replace(/[~*]/g,"").replace(/\s+/g," ").trim().replace(/^-/,""); }
+function squash(s){ return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z]/g,"").replace(/ou/g,"o").replace(/oo/g,"o").replace(/uu/g,"u").replace(/aa/g,"a").replace(/ee/g,"e").replace(/ii/g,"i"); }
+function kanaSquash(s){ return s.replace(/[\s~～〜。、・\[\]［］()（）\-ー―*!?？！「」]/g,""); }
+function variants(w){
+  const out=new Set(), parens=[...w.ro.matchAll(/\(([^)]*)\)/g)].map(m=>m[1]);
+  [...w.ro.split("/"),...parens].forEach(a=>{ const base=a.replace(/\([^)]*\)/g,""); out.add(squash(base.replace(/\[[^\]]*\]/g,""))); out.add(squash(base)); });
+  out.delete(""); return out;
+}
+function kanaVariants(w){ const out=new Set(); w.jp.split("/").forEach(a=>{ out.add(kanaSquash(a.replace(/\([^)]*\)/g,"").replace(/\[[^\]]*\]/g,""))); out.add(kanaSquash(a.replace(/\([^)]*\)/g,""))); }); out.delete(""); return out; }
+function lev(a,b){ if(Math.abs(a.length-b.length)>1) return 2; const d=Array.from({length:a.length+1},(_,i)=>[i]); for(let j=1;j<=b.length;j++) d[0][j]=j;
+  for(let i=1;i<=a.length;i++) for(let j=1;j<=b.length;j++) d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1)); return d[a.length][b.length]; }
+function checkType(){
+  if(R.locked) return; const inp=$("#typeIn"), raw=(inp&&inp.value||"").trim(); if(!raw){ inp&&inp.focus(); return; }
+  const w=cur(), v=variants(w), sq=squash(raw);
+  let ok=v.has(sq)||kanaVariants(w).has(kanaSquash(raw)), typo=false;
+  if(!ok&&sq.length>=4) for(const t of v){ if(t.length>=5&&lev(sq,t)<=1){ ok=true; typo=true; break; } }
+  R.locked=true; R.typed=raw; R.typedOk=ok; R.typo=typo; answer(ok); renderAll(); speak(w);
+}
+
+/* ---------- flip + swipe ---------- */
+function flipCard(){ if(R.done||mode!=="flip"||R.locked) return; R.flipped=!R.flipped; sound("flip"); renderStage(); renderHead(); if(R.flipped) speak(cur()); const c=$("#card"); c&&c.focus({preventScroll:true}); }
+function decide(ok){
+  if(R.locked||R.done||mode!=="flip") return; R.locked=true;
+  const card=$("#card"); if(card){ card.style.transition="transform .3s ease, opacity .3s"; card.style.transform=`translateX(${ok?120:-120}%) rotate(${ok?14:-14}deg)`; card.style.opacity="0";
+    const st=card.querySelector(ok?".stamp.yes":".stamp.no"); if(st) st.style.opacity=1; }
+  answer(ok,{requeue:!ok}); renderRight(); renderTop(); setTimeout(next,280);
+}
+function wireSwipe(){
+  const card=$("#card"); if(!card) return; let sx=0,sy=0,dx=0,drag=false,moved=false;
+  card.addEventListener("pointerdown",e=>{ if(e.target.closest("button")) return; drag=true; moved=false; sx=e.clientX; sy=e.clientY; dx=0; card.style.transition="none"; try{ card.setPointerCapture(e.pointerId); }catch(_){} });
+  card.addEventListener("pointermove",e=>{ if(!drag) return; dx=e.clientX-sx; if(Math.abs(dx)>8) moved=true; if(!moved) return;
+    card.style.transform=`translateX(${dx}px) rotate(${dx/20}deg)`;
+    card.querySelector(".stamp.yes").style.opacity=Math.max(0,Math.min(1,dx/100)); card.querySelector(".stamp.no").style.opacity=Math.max(0,Math.min(1,-dx/100)); });
+  card.addEventListener("pointerup",e=>{ if(!drag) return; drag=false; card.style.transition="";
+    if(moved&&Math.abs(dx)>90){ decide(dx>0); return; }
+    card.style.transform=""; card.querySelectorAll(".stamp").forEach(s=>s.style.opacity=0);
+    if(!moved&&Math.abs(e.clientY-sy)<10) flipCard(); });
+  card.addEventListener("pointercancel",()=>{ drag=false; card.style.transition=""; card.style.transform=""; });
+}
+
+/* ---------- sheets ---------- */
+function closeSheet(){ document.querySelectorAll(".scrim").forEach(s=>s.remove()); }
+function openPicker(){
+  closeSheet();
+  const sc=document.createElement("div"); sc.className="scrim";
+  const books=[0,1,2,3].map(b=>`<div class="book" style="padding:4px 0 0">BOOK ${b+1} · LESSONS ${b*5+1}–${b*5+5}</div><div class="cells">${[1,2,3,4,5].map(k=>{ const n=b*5+k, st=lessonStats(n);
+    return `<button class="cell ${n===S.lesson?"on":st.done?"done":""}" data-lesson="${n}" aria-label="Lesson ${n}, ${TOPICS[n]}, ${st.pct}%"><b>${n}</b><span>${st.pct}%</span></button>`; }).join("")}</div>`).join("");
+  sc.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-label="Choose a lesson"><span class="grab"></span>
+    <div class="shead"><h2>Lessons</h2><button class="iconbtn" data-act="close" aria-label="Close">${XICON}</button></div>
+    <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span class="sr">Search words</span><input id="q2" type="search" placeholder="Search 894 words" autocomplete="off"></label>
+    <div id="sheetBody">${books}</div></div>`;
+  document.body.appendChild(sc);
+  sc.addEventListener("click",e=>{ if(e.target===sc) closeSheet(); });
+  const q2=sc.querySelector("#q2"); q2.oninput=()=>{ const hits=searchHits(q2.value); sc.querySelector("#sheetBody").innerHTML=hits?hitsHTML(hits,q2.value):books; };
+}
+function openSettings(){
+  closeSheet();
+  const sc=document.createElement("div"); sc.className="scrim";
+  const sw=(id,on)=>`<button class="switch" role="switch" id="${id}" aria-checked="${on}"></button>`;
+  sc.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-label="Settings"><span class="grab"></span>
+    <div class="shead"><h2>Settings</h2><button class="iconbtn" data-act="close" aria-label="Close">${XICON}</button></div>
+    <div class="setrow"><div><b>Show romaji</b><small>Turn it off once hiragana feels easy</small></div>${sw("swRomaji",S.settings.romaji)}</div>
+    <div class="setrow"><div><b>Card direction</b><small>For Flip and Quiz</small></div><div class="seg" role="group" aria-label="Card direction">${[["je","JP → EN"],["ej","EN → JP"],["mix","Mixed"]].map(([k,t])=>`<button data-dir="${k}" aria-pressed="${S.settings.dir===k}">${t}</button>`).join("")}</div></div>
+    <div class="setrow"><div><b>Sounds</b><small>Soft kalimba notes on right and wrong</small></div>${sw("swSound",S.settings.sound)}</div>
+    <div class="setrow"><div style="flex:1"><b>Japanese voice</b>${jaVoices.length?`<label class="sr" for="voiceSel">Japanese voice</label><select id="voiceSel" style="display:block;width:100%;margin-top:6px;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);font:inherit;color:var(--ink)">${jaVoices.map(v=>`<option value="${esc(v.name)}" ${jaVoice&&v.name===jaVoice.name?"selected":""}>${esc(v.name)}${MALE.test(v.name)?" (male)":""}</option>`).join("")}</select><small>Softest female voice is picked first. Tap play to hear it.</small>`:`<small>No Japanese voice found on this device. Add one in your system's speech settings.</small>`}</div><button class="say" data-say="10-8" aria-label="Test voice">${SPK}</button></div>
+    ${installRow()}
+    <small style="color:var(--muted)">${Object.values(S.words).filter(s=>s.l>0).length} of ${WORDS.length} words started · ${S.xp} XP · Progress is saved on this device</small>
+    <div id="resetBox"><button class="btn ghost press" data-act="reset" style="width:100%">Reset all progress</button></div></div>`;
+  document.body.appendChild(sc);
+  sc.addEventListener("click",e=>{ if(e.target===sc) closeSheet(); });
+  sc.querySelector("#swRomaji").onclick=e=>{ S.settings.romaji=!S.settings.romaji; e.currentTarget.setAttribute("aria-checked",S.settings.romaji); save(); renderAll(); };
+  sc.querySelector("#swSound").onclick=e=>{ S.settings.sound=!S.settings.sound; e.currentTarget.setAttribute("aria-checked",S.settings.sound); save(); if(S.settings.sound) sound("right"); };
+  const vs=sc.querySelector("#voiceSel"); if(vs) vs.onchange=()=>{ S.settings.voice=vs.value; save(); loadVoices(); speak(WORD_BY_ID["10-8"]); };
+  sc.querySelectorAll("[data-dir]").forEach(b=>b.onclick=()=>{ S.settings.dir=b.dataset.dir; sc.querySelectorAll("[data-dir]").forEach(x=>x.setAttribute("aria-pressed",x===b)); save(); R.dir=null; renderStage(); });
+}
+
+
+/* ---------- install as an app ---------- */
+let deferredPrompt=null;
+const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); deferredPrompt=e; });
+addEventListener("appinstalled",()=>{ deferredPrompt=null; toast("Tango Dojo is on your home screen!"); });
+function installRow(){
+  if(standalone()) return "";
+  const how=deferredPrompt?`<button class="btn blue press" data-act="install" style="min-height:44px;font-size:15px">Install</button>`:"";
+  const tip=isIOS?"In Safari, tap the Share button, then Add to Home Screen.":deferredPrompt?"Adds Tango Dojo to your home screen like a normal app.":"Open your browser menu and choose Install app or Add to Home Screen.";
+  return `<div class="setrow"><div><b>Install as an app</b><small>${tip}</small></div>${how}</div>`;
+}
+if("serviceWorker" in navigator&&location.protocol.startsWith("http")) addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+
+/* ---------- events ---------- */
+function setLesson(n){ S.lesson=n; save(); focus=false; newRound(); closeSheet(); renderAll(); }
+function setMode(m){ if(m===mode&&!R.done) return; mode=m; focus=false; if(R.done){ newRound(); } else { R.locked=false; R.flipped=false; R.picked=null; R.opts=null; R.dir=null; R.hints=0; R.typed=""; } renderAll(); }
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-mode],[data-lesson],[data-goto],[data-say],[data-act],[data-opt]"); if(!t) return;
+  if(t.dataset.say){ e.stopPropagation(); speak(WORD_BY_ID[t.dataset.say]); return; }
+  if(t.dataset.mode) return setMode(t.dataset.mode);
+  if(t.dataset.lesson) return setLesson(+t.dataset.lesson);
+  if(t.dataset.goto){ query=""; const q=$("#q"); if(q) q.value=""; return setLesson(+t.dataset.goto); }
+  if(t.dataset.opt) return pickOpt(+t.dataset.opt);
+  const a=t.dataset.act;
+  if(a==="got") decide(true); else if(a==="again") decide(false);
+  else if(a==="next") next();
+  else if(a==="again-round"){ newRound(); renderAll(); }
+  else if(a==="focus"){ focus=!focus; renderStage(); const c=$("#card"); c&&c.focus({preventScroll:true}); }
+  else if(a==="hint"){ R.hints=Math.min(2,R.hints+1); const v=$("#typeIn").value; R.typed=v; renderStage(); }
+  else if(a==="picker"){ if(matchMedia("(max-width:760px)").matches) openPicker(); }
+  else if(a==="settings") openSettings();
+  else if(a==="install"&&deferredPrompt){ deferredPrompt.prompt(); deferredPrompt.userChoice.finally(()=>{ deferredPrompt=null; closeSheet(); }); }
+  else if(a==="close") closeSheet();
+  else if(a==="reset"){ $("#resetBox").innerHTML=`<p style="margin:0 0 8px;color:var(--muted)">This wipes every word level, your XP and your streak. Sure?</p><div class="ans"><button class="btn ghost press" data-act="close">Keep it</button><button class="btn again press" data-act="reset-yes">Yes, reset</button></div>`; }
+  else if(a==="reset-yes"){ const st=S.settings; S=fresh(); S.settings=st; save(); closeSheet(); newRound(); renderAll(); toast("Progress reset. Fresh start!"); }
+});
+$("#q").addEventListener("input",e=>{ query=e.target.value; renderList(); });
+document.addEventListener("keydown",e=>{
+  if(document.querySelector(".scrim")){ if(e.key==="Escape") closeSheet(); return; }
+  const typing=e.target&&e.target.tagName==="INPUT";
+  if(e.key==="Escape"&&focus){ focus=false; renderStage(); return; }
+  if(typing) return;
+  if((e.key==="f"||e.key==="F")&&!R.done){ focus=!focus; renderStage(); return; }
+  if(R.done){ if(e.key==="Enter"){ e.preventDefault(); newRound(); renderAll(); } return; }
+  if(mode==="flip"){
+    if(e.key===" "||(e.key==="Enter"&&e.target.id==="card")){ e.preventDefault(); flipCard(); }
+    else if(e.key==="ArrowRight"){ e.preventDefault(); decide(true); }
+    else if(e.key==="ArrowLeft"){ e.preventDefault(); decide(false); }
+  } else if(mode==="quiz"||mode==="listen"){
+    if(!R.locked&&/^[1-4]$/.test(e.key)) pickOpt(+e.key-1);
+    else if(R.locked&&e.key==="Enter"&&e.target.id!=="nextBtn"){ e.preventDefault(); next(); }
+  } else if(mode==="type"&&R.locked&&e.key==="Enter"&&e.target.id!=="nextBtn"){ e.preventDefault(); next(); }
+});
+newRound(); renderAll();
+</script>
+
+</body>
+</html>

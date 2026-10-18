@@ -1,0 +1,30 @@
+{
+  "name": "Tango Dojo",
+  "short_name": "Tango Dojo",
+  "description": "Fun flashcards for all 894 Japanese N5 words, Lessons 1 to 20.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#E5F2FA",
+  "theme_color": "#FFFFFF",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
